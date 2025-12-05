@@ -1,0 +1,87 @@
+.grammarly-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    padding: 40px 0 60px 0;
+}
+
+.grammarly-title {
+    color: #fff;
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+}
+
+.grammarly-intro {
+    color: #E0E7FF;
+    text-align: center;
+    font-size: 1.25rem;
+    margin-bottom: 40px;
+}
+
+.grammar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.grammar-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.10);
+    padding: 28px 22px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 6px solid #4F46E5;
+}
+
+.grammar-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.18);
+    border-left: 6px solid #6366F1;
+}
+
+.grammar-card h2 {
+    color: #4F46E5;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.grammar-card p {
+    color: #374151;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.grammar-link {
+    color: #4F46E5;
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-weight: 500;
+    margin-left: 6px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.grammar-link:hover {
+    background: #6366F1;
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .grammarly-title {
+        font-size: 2rem;
+    }
+    .grammar-grid {
+        gap: 18px;
+    }
+    .grammar-card {
+        padding: 18px 10px;
+    }
+}

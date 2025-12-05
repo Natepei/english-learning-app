@@ -1,0 +1,93 @@
+.favorites-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.favorites-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.favorites-header h1 {
+    color: #1F2937;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.favorites-content {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+.favorite-words-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.favorite-word-card {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.favorite-word-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #fff;
+}
+
+.favorite-word {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 0.5rem;
+}
+
+.favorite-phonetic {
+    font-style: italic;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+.favorite-definition {
+    color: #374151;
+    line-height: 1.5;
+}
+
+.loading-text {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #6b7280;
+    padding: 2rem;
+}
+
+.no-favorites {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #6b7280;
+    padding: 2rem;
+}
+
+@media (max-width: 640px) {
+    .favorites-container {
+        margin: 1rem auto;
+    }
+
+    .favorites-content {
+        padding: 1rem;
+    }
+
+    .favorite-words-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}

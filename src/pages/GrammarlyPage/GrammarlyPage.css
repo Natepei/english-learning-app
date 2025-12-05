@@ -1,0 +1,98 @@
+.basic-tenses-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    padding: 40px 0 60px 0;
+}
+
+.tenses-title {
+    color: #fff;
+    text-align: center;
+    font-size: 2.3rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+}
+
+.tenses-intro {
+    color: #E0E7FF;
+    text-align: center;
+    font-size: 1.15rem;
+    margin-bottom: 32px;
+}
+
+.tenses-table-wrapper {
+    overflow-x: auto;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tenses-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.10);
+    border: 2px solid #4F46E5; /* Added border around the table */
+}
+
+.tenses-table th, .tenses-table td {
+    padding: 14px 10px;
+    text-align: left;
+    border: 1px solid #E0E7FF; /* Added cell borders, replacing border-bottom */
+    font-size: 1rem;
+    font-weight: 700; /* Made text bolder for both th and td */
+}
+
+.tenses-table th {
+    background: #4F46E5;
+    color: #fff;
+    font-weight: 700; /* Already bold, retained for clarity */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.tenses-table tr:last-child td {
+    border-bottom: none; /* Ensures no extra bottom border on the last row */
+}
+
+.tenses-table tr:hover {
+    background: #EEF2FF;
+}
+
+.tenses-type-navbar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.tenses-type-btn {
+    background: #fff;
+    color: #4F46E5;
+    border: 2px solid #000000;
+    border-radius: 8px;
+    padding: 8px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.tenses-type-btn.active,
+.tenses-type-btn:hover {
+    background: #4F46E5;
+    color: #fff;
+    border: 2px solid #6366F1;
+}
+
+@media (max-width: 900px) {
+    .tenses-title {
+        font-size: 1.5rem;
+    }
+    .tenses-table th, .tenses-table td {
+        font-size: 0.95rem;
+        padding: 10px 6px;
+    }
+}

@@ -1,0 +1,83 @@
+.basic-tenses-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    padding: 40px 0 60px 0;
+}
+
+.tenses-title {
+    color: #fff;
+    text-align: center;
+    font-size: 2.3rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+}
+
+.tenses-intro {
+    color: #E0E7FF;
+    text-align: center;
+    font-size: 1.15rem;
+    margin-bottom: 32px;
+}
+
+.grammar-section {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.10);
+    max-width: 900px;
+    margin: 32px auto 0 auto;
+    padding: 32px 24px 24px 24px;
+    transition: box-shadow 0.2s;
+}
+
+.grammar-section h2 {
+    color: #4F46E5;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.grammar-section p {
+    color: #374151;
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+    line-height: 1.7;
+}
+
+.grammar-section ul {
+    margin-left: 18px;
+    margin-bottom: 12px;
+}
+
+.grammar-section li {
+    color: #22223b;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    line-height: 1.6;
+    padding-left: 2px;
+}
+
+.grammar-section b {
+    color: #4F46E5;
+}
+
+.grammar-section i {
+    color: #6366F1;
+}
+
+.grammar-section span[style*="color: red"] {
+    font-weight: bold;
+}
+
+.grammar-section span[style*="color: green"] {
+    font-weight: bold;
+}
+
+@media (max-width: 900px) {
+    .grammar-section {
+        padding: 18px 8px;
+    }
+    .tenses-title {
+        font-size: 1.5rem;
+    }
+}

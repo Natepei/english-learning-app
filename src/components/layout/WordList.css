@@ -1,0 +1,50 @@
+.word-list-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.word-list-container h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.word-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.word-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s;
+}
+
+.word-item:hover {
+    background-color: #f0f0f0;
+}
+
+.word-link {
+    text-decoration: none;
+    font-size: 1.2rem;
+    color: #007bff;
+    transition: color 0.3s;
+    width: 100%;
+}
+
+.word-link:hover {
+    color: #0056b3;
+}
+
+.loading, .error {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #777;
+}

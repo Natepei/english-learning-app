@@ -1,0 +1,301 @@
+.ted-videos-page-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #000;
+}
+
+.ted-videos-page {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    padding: 20px;
+    background-color: #000;
+    min-height: 100vh;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+/* Main container của video player và transcript */
+.main-content-video {
+    margin-bottom: 30px;
+    background-color: #111;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.video-transcript-container {
+    display: flex;
+    gap: 5px;
+    height: 440px;
+}
+
+/* Video player section */
+.video-player-section {
+    flex: 1;
+    min-width: 0;
+    transition: all 0.3s ease;
+}
+
+.video-player-section.with-transcript {
+    flex: 0 0 50%;
+}
+
+.video-player {
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #000;
+    width: 100%;
+    height: 392px;
+    margin-bottom: 15px;
+    align-self: center;
+}
+
+.video-player iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.transcribe-button {
+    padding: 8px 20px;
+    background-color: #4F46E5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+.transcribe-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.transcribe-button:hover:not(:disabled) {
+    background-color: #3730a3;
+}
+
+/* Transcript section */
+.transcript-section {
+    flex: 0;
+    min-width: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.transcript-section.visible {
+    flex: 0 0 50%;
+    opacity: 1;
+    visibility: visible;
+}
+
+.toggle-transcript-button {
+    padding: 8px 20px;
+    background-color: #4F46E5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+}
+
+.toggle-transcript-button:hover {
+    background-color: #3730a3;
+}
+
+.transcript {
+    height: 0;
+    padding: 0;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background-color: #222;
+    color: #fff;
+    transform: translateX(50px);
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.transcript-section.visible .transcript {
+    height: auto;
+    aspect-ratio: 16/9;
+    padding: 20px;
+    transform: translateX(0);
+    opacity: 1;
+    overflow-y: auto;
+}
+
+.transcript-line {
+    display: inline;
+    padding: 4px; /* Reduced from 8px to 4px */
+    margin: 2px 0; /* Reduced from 4px 0 to 2px 0 */
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.transcript-line.active {
+    background: #4F46E5; /* Bright yellow highlight */
+    color: #d6ec0b !important;
+    font-weight: bold;
+    box-shadow: 0 0 4px 2px #ffe06688;
+    z-index: 1;
+}
+
+/* Adjusted for better readability */
+.transcript-content {
+    font-size: 1rem;
+    line-height: 1.4; /* Reduced from 2 to 1.4 */
+    word-break: break-word;
+    white-space: normal;
+}
+
+/* Video list section */
+.video-list-section {
+    background-color: #111;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.video-list-title {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.video-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+.video-item {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #222;
+}
+
+.video-item:hover {
+    background-color: #333;
+    transform: scale(1.02);
+}
+
+.video-item.active {
+    border-color: #4F46E5;
+    background-color: #333;
+}
+
+.video-thumbnail {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.video-title {
+    font-size: 0.9rem;
+    color: #fff;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Custom scrollbar cho transcript */
+.transcript::-webkit-scrollbar {
+    width: 6px;
+}
+
+.transcript::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+}
+
+.transcript::-webkit-scrollbar-thumb {
+    background: #4F46E5;
+    border-radius: 4px;
+}
+
+.original-text,
+.translated-text {
+    display: block;
+    margin: 4px 0;
+}
+
+.translated-text {
+    color: #9ca3af;
+    font-size: 0.9em;
+}
+
+/* Loading and error states */
+.loading,
+.error {
+    text-align: center;
+    color: #fff;
+    padding: 20px;
+}
+
+.error {
+    color: #ff4444;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .video-transcript-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .video-player-section,
+    .video-player-section.with-transcript {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .transcript-section {
+        width: 100%;
+        max-height: 0;
+    }
+
+    .transcript-section.visible {
+        flex: 1 1 auto;
+        max-height: 400px;
+        width: 100%;
+    }
+
+    .transcript {
+        height: 100%;
+        max-height: 400px;
+    }
+
+    .transcript-section.visible .transcript {
+        height: 400px;
+        aspect-ratio: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .ted-videos-page {
+        margin-top: 60px;
+    }
+
+    .title {
+        top: 60px;
+        font-size: 1.5rem;
+    }
+}

@@ -1,0 +1,188 @@
+/* Test Timer Component Styles */
+
+.test-timer {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.test-timer.warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-bottom-color: #fbbf24;
+}
+
+.test-timer.critical {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-bottom-color: #ef4444;
+}
+
+.timer-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.timer-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    color: #3b82f6;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.test-timer.critical .timer-icon {
+    color: #ef4444;
+    animation: warning-pulse 1s ease-in-out infinite;
+}
+
+.timer-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Time Display */
+.time-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.test-timer.warning .time-display {
+    color: #92400e;
+}
+
+.test-timer.critical .time-display {
+    color: #7f1d1d;
+}
+
+.time-unit {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.time-display.expired {
+    font-size: 2rem;
+    color: #ef4444;
+    letter-spacing: 0.1em;
+}
+
+.separator {
+    font-size: 1.5rem;
+    opacity: 0.6;
+    margin: 0 0.125rem;
+    animation: blink 1s ease-in-out infinite;
+}
+
+/* Timer Message */
+.timer-message {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    text-align: center;
+    color: inherit;
+}
+
+.test-timer.normal .timer-message {
+    color: #6b7280;
+}
+
+.test-timer.warning .timer-message {
+    color: #92400e;
+}
+
+.test-timer.critical .timer-message {
+    color: #7f1d1d;
+    animation: blink 0.5s ease-in-out infinite;
+}
+
+/* Timer Bar */
+.timer-bar {
+    height: 3px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+
+.timer-progress {
+    height: 100%;
+    background: #3b82f6;
+    transition: width 0.2s linear;
+    border-radius: 2px;
+}
+
+.test-timer.warning .timer-progress {
+    background: #fbbf24;
+}
+
+.test-timer.critical .timer-progress {
+    background: #ef4444;
+    animation: critical-glow 0.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes blink {
+    0%, 49%, 100% {
+        opacity: 1;
+    }
+    50%, 99% {
+        opacity: 0.4;
+    }
+}
+
+@keyframes warning-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+}
+
+@keyframes critical-glow {
+    0%, 100% {
+        box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+    50% {
+        box-shadow: inset 0 0 15px rgba(239, 68, 68, 0.5);
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .timer-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .timer-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .time-unit {
+        font-size: 1.5rem;
+    }
+
+    .separator {
+        font-size: 1.2rem;
+    }
+
+    .test-timer {
+        padding: 0.75rem;
+    }
+}

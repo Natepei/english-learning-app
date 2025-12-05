@@ -1,0 +1,104 @@
+.admin-exercises-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.exercise-form input,
+.exercise-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    background-color: #fff;
+    color: black;
+}
+
+.options-container {
+    margin-bottom: 20px;
+}
+
+.options-container label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.option-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.option-input-group input {
+    flex: 1;
+    margin-bottom: 0;
+    color: black;
+}
+
+.remove-option-btn {
+    padding: 0 10px;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-option-btn {
+    padding: 8px 16px;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.button-group button,
+.exercise-form button {
+    padding: 12px 20px;
+    background-color: #4F46E5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.exercise-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.exercise-list li {
+    margin-bottom: 15px;
+    border: 1px solid #E5E7EB;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.exercise-list button {
+    margin-right: 10px;
+}
+
+.exercise-list button:hover,
+.exercise-form button:hover {
+    background-color: #4338CA;
+}
+
+.add-option-btn:hover {
+    background-color: #16a34a;
+}
+
+.remove-option-btn:hover {
+    background-color: #dc2626;
+}

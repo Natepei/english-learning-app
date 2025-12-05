@@ -1,0 +1,216 @@
+.header {
+    height: 70px;
+    /* Điều chỉnh theo chiều cao của navbar */
+    width: 100%;
+}
+
+.navbar {
+    background-color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.navbar-left {
+    flex-shrink: 0;
+}
+
+.navbar-left .navbar-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4F46E5;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.navbar-center {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar-menu {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.navbar-menu li a {
+    color: #4B5563;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+}
+
+.navbar-menu li a:hover {
+    color: #4F46E5;
+}
+
+.hamburger-icon {
+    display: none;
+}
+
+/* Ẩn mobile menu mặc định */
+.mobile-menu {
+    display: none;
+}
+
+/* Add new styles for user menu */
+.user-menu {
+    position: relative;
+    padding: 0.5rem 0;
+}
+
+.user-name {
+    cursor: pointer;
+    color: #4F46E5;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-name:after {
+    content: '▼';
+    font-size: 0.8em;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    padding: 0.5rem 0;
+}
+
+.user-menu:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu li {
+    padding: 0;
+}
+
+.dropdown-menu li a,
+.dropdown-menu li button {
+    display: block;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: #4B5563;
+    cursor: pointer;
+}
+
+.dropdown-menu li a:hover,
+.dropdown-menu li button:hover {
+    background-color: #F3F4F6;
+    color: #4F46E5;
+}
+
+/* Mobile menu additional styles */
+.mobile-logout-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0.5rem 0;
+    font-size: 1.1rem;
+    color: #4B5563;
+    cursor: pointer;
+}
+
+.mobile-logout-btn:hover {
+    color: #4F46E5;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .navbar-center {
+        display: none;
+    }
+
+    .hamburger-icon {
+        display: block;
+        font-size: 2rem;
+        color: #4F46E5;
+        cursor: pointer;
+    }
+
+    .mobile-menu {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 250px;
+        height: 100vh;
+        background-color: white;
+        box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.1);
+        transition: left 0.3s ease-in-out;
+        z-index: 999;
+        padding-top: 70px;
+        /* Thêm padding-top bằng chiều cao của navbar */
+    }
+
+    .mobile-menu.open {
+        left: 0;
+    }
+
+    .mobile-menu-list {
+        list-style: none;
+        padding: 1rem;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .mobile-menu-list li a {
+        color: #4B5563;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        font-size: 1.1rem;
+        display: block;
+        padding: 0.5rem 0;
+    }
+
+    .mobile-menu-list li a:hover {
+        color: #4F46E5;
+    }
+
+    .navbar-left .navbar-logo {
+        padding-right: 200px;
+    }
+}

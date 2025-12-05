@@ -1,0 +1,88 @@
+.exercises-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.exercise-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    border: 1px solid #E5E7EB;
+}
+
+.exercise-card h3 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1F2937;
+    margin-bottom: 15px;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    border: 1px solid #E5E7EB;
+}
+
+label:hover {
+    background-color: #E5E7EB;
+}
+
+label.checked {
+    background-color: #4F46E5;
+    color: #fff;
+    border-color: #4F46E5;
+}
+
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+}
+
+input[type="radio"]:checked+label {
+    background-color: #4F46E5;
+    color: #fff;
+    border-color: #4F46E5;
+}
+
+.submit-btn {
+    padding: 12px 20px;
+    background-color: #4F46E5;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.submit-btn:hover {
+    background-color: #4338CA;
+}

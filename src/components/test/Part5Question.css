@@ -1,0 +1,133 @@
+/* Part 5 Question Styles - Incomplete Sentences */
+
+.part5-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.grammar-hint {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-left: 4px solid #f59e0b;
+    border-radius: 8px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.hint-label {
+    font-weight: 700;
+    color: #92400e;
+    white-space: nowrap;
+}
+
+.hint-text {
+    color: #92400e;
+    font-style: italic;
+}
+
+/* Sentence Section */
+.sentence-section {
+    background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 2px solid #dbeafe;
+    text-align: center;
+}
+
+.sentence-text {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: #111827;
+    font-weight: 500;
+}
+
+.blank {
+    background: #fbbf24;
+    color: white;
+    padding: 0.5rem 0.875rem;
+    border-radius: 6px;
+    font-weight: 700;
+    display: inline-block;
+    margin: 0 0.5rem;
+}
+
+/* Part 5 Options */
+.part5-options {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.part5-options .option-full-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.part5-options .option-full-text:hover {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+    color: #1e40af;
+}
+
+.part5-options .option-full-text.selected {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    color: #065f46;
+}
+
+.part5-options .option-letter {
+    font-weight: 700;
+    color: #6b7280;
+    min-width: 40px;
+    text-align: center;
+    background: #f3f4f6;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.part5-options .option-full-text.selected .option-letter {
+    background: #10b981;
+    color: white;
+}
+
+.part5-options .option-text {
+    flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .part5-container {
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+
+    .sentence-section {
+        padding: 1.5rem;
+    }
+
+    .sentence-text {
+        font-size: 1rem;
+    }
+
+    .blank {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.9rem;
+    }
+}

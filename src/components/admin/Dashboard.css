@@ -1,0 +1,108 @@
+/* Main wrapper adjustments */
+#wrapper {
+    min-height: 100vh;
+    display: flex;
+}
+
+/* Sidebar styling */
+.sidebar {
+    min-width: 14rem;
+    width: 14rem;
+    transition: all 0.3s ease-in-out;
+    z-index: 100;
+}
+
+.sidebar.toggled {
+    min-width: 6.5rem;
+    width: 6.5rem;
+}
+
+.sidebar .nav-item {
+    position: relative;
+    margin-bottom: 0.25rem;
+}
+
+.sidebar .nav-link {
+    padding: 1rem 1.5rem;
+    width: 14rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+
+.sidebar .nav-link span {
+    font-size: 0.85rem;
+}
+
+.sidebar-brand {
+    height: 4.375rem;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    letter-spacing: 0.05rem;
+}
+
+.sidebar-brand-icon {
+    font-size: 2rem;
+}
+
+.sidebar-brand-text {
+    display: inline;
+}
+
+/* Content area styling */
+#content-wrapper {
+    flex: 1;
+    overflow-x: hidden;
+    background-color: #f8f9fc;
+}
+
+/* Topbar styling */
+.topbar {
+    height: 4.375rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* Loại bỏ margin-bottom của navbar để không có khoảng trắng */
+.navbar {
+    margin-bottom: 0 !important;
+}
+
+/* Điều chỉnh padding của container để sát với navbar */
+.container-fluid {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    min-height: calc(100vh - 4.375rem);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        min-width: 6.5rem;
+        width: 6.5rem;
+    }
+
+    .sidebar .nav-item .nav-link {
+        width: 6.5rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .sidebar .nav-item .nav-link span {
+        display: none;
+    }
+
+    .sidebar .nav-item .nav-link i {
+        margin-right: 0;
+        font-size: 1.25rem;
+    }
+
+    .sidebar-brand-text {
+        display: none;
+    }
+}

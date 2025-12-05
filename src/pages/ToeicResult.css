@@ -1,0 +1,375 @@
+.result-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    padding: 2rem;
+}
+
+.result-card {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.result-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.result-header h1 {
+    font-size: 2.5rem;
+    color: #1F2937;
+    margin-bottom: 0.5rem;
+}
+
+.exam-title {
+    font-size: 1.25rem;
+    color: #4F46E5;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.completion-date {
+    color: #6B7280;
+    font-size: 0.875rem;
+}
+
+.total-score-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+}
+
+.score-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 8px solid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.score-number {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.score-max {
+    font-size: 1.5rem;
+    color: #6B7280;
+}
+
+.score-details h2 {
+    font-size: 2rem;
+    color: #1F2937;
+    margin-bottom: 0.5rem;
+}
+
+.score-level {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.time-spent {
+    background: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #4B5563;
+}
+
+.section-scores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.section-score {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 2px solid #E5E7EB;
+}
+
+.section-score h3 {
+    font-size: 1.25rem;
+    color: #1F2937;
+    margin-bottom: 1rem;
+}
+
+.section-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.raw-score {
+    display: flex;
+    flex-direction: column;
+}
+
+.raw-score .label {
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.raw-score .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.scaled-score {
+    text-align: right;
+}
+
+.scaled-score .score {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #4F46E5;
+}
+
+.scaled-score .max {
+    font-size: 1.25rem;
+    color: #6B7280;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #E5E7EB;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.listening-fill {
+    background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%);
+}
+
+.reading-fill {
+    background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+}
+
+.part-scores-section {
+    margin-bottom: 2rem;
+}
+
+.part-scores-section h2 {
+    font-size: 1.5rem;
+    color: #1F2937;
+    margin-bottom: 1.5rem;
+}
+
+.parts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.part-card {
+    background: #F9FAFB;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid #E5E7EB;
+}
+
+.part-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.part-icon {
+    font-size: 2rem;
+}
+
+.part-info h4 {
+    font-size: 1rem;
+    color: #1F2937;
+    margin-bottom: 0.25rem;
+}
+
+.part-info p {
+    font-size: 0.75rem;
+    color: #6B7280;
+}
+
+.part-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.score-fraction {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+.score-percentage {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4F46E5;
+}
+
+.part-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #E5E7EB;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.part-progress-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.statistics-section {
+    margin-bottom: 2rem;
+}
+
+.statistics-section h2 {
+    font-size: 1.5rem;
+    color: #1F2937;
+    margin-bottom: 1.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.stat-item {
+    background: #F9FAFB;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.result-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-review, .btn-history, .btn-retry {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.btn-review {
+    background: #4F46E5;
+    color: white;
+}
+
+.btn-review:hover {
+    transform: scale(1.05);
+}
+
+.btn-history {
+    background: #10B981;
+    color: white;
+}
+
+.btn-history:hover {
+    transform: scale(1.05);
+}
+
+.btn-retry {
+    background: #F59E0B;
+    color: white;
+}
+
+.btn-retry:hover {
+    transform: scale(1.05);
+}
+
+.result-loading, .result-error {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #6B7280;
+}
+
+@media (max-width: 768px) {
+    .result-container {
+        padding: 1rem;
+    }
+
+    .result-card {
+        padding: 1rem;
+    }
+
+    .total-score-section {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .score-circle {
+        width: 150px;
+        height: 150px;
+    }
+
+    .score-number {
+        font-size: 3rem;
+    }
+
+    .parts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .result-actions {
+        flex-direction: column;
+    }
+}
