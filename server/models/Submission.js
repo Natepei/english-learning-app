@@ -115,6 +115,12 @@ submissionSchema.virtual('completionPercentage').get(function() {
 submissionSchema.methods.complete = function() {
     this.status = 'completed';
     this.completedAt = new Date();
+    
+    // Calculate time spent (in seconds)
+    if (this.startedAt) {
+        this.timeSpent = Math.floor((this.completedAt - this.startedAt) / 1000);
+    }
+    
     this.calculateRawScores();
     this.convertToScaledScore();
     

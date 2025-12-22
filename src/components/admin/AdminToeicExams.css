@@ -30,28 +30,51 @@
     border-collapse: collapse;
 }
 
+.exams-table th, 
+.exams-table td {
+    padding: 1rem;
+    text-align: left;
+    vertical-align: middle; /* Ensures vertical alignment */
+}
+
+/* Header Styling */
 .exams-table thead {
     background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
     color: white;
 }
 
 .exams-table th {
-    padding: 1rem;
-    text-align: left;
     font-weight: 600;
+    white-space: nowrap; /* Prevents headers from breaking lines */
 }
 
-.exams-table tbody tr {
-    border-bottom: 1px solid #E5E7EB;
-    transition: background-color 0.3s;
+/* Center align numeric columns (#, Duration, Qs, Attempts, Score) */
+.exams-table th:nth-child(1), .exams-table td:nth-child(1),
+.exams-table th:nth-child(3), .exams-table td:nth-child(3),
+.exams-table th:nth-child(4), .exams-table td:nth-child(4),
+.exams-table th:nth-child(5), .exams-table td:nth-child(5),
+.exams-table th:nth-child(6), .exams-table td:nth-child(6) {
+    text-align: center;
 }
 
+/* Specific style for the Actions column (Last column) */
+.exams-table th:last-child, 
+.exams-table td:last-child {
+    text-align: center;
+    width: 250px; /* Give it enough width */
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center; /* Center buttons horizontally */
+    align-items: center;
+    flex-wrap: nowrap; /* Prevent buttons from stacking */
+}
+
+/* Hover effect for rows */
 .exams-table tbody tr:hover {
     background-color: #F9FAFB;
-}
-
-.exams-table td {
-    padding: 1rem;
 }
 
 .status-badge {

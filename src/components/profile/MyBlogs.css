@@ -1,0 +1,110 @@
+.myblogs-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.myblogs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.myblogs-header h1 {
+    color: #1F2937;
+    font-size: 1.8rem;
+}
+
+.btn-create {
+    background: #4F46E5;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-create:hover {
+    background: #4338CA;
+}
+
+.myblogs-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.myblogs-table th {
+    background: #4F46E5;
+    color: white;
+    padding: 1rem;
+    text-align: left;
+}
+
+.myblogs-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.myblogs-table tr:hover {
+    background: #F8FAFC;
+}
+
+.blog-title-link {
+    color: #1F2937;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.blog-title-link:hover {
+    color: #4F46E5;
+    text-decoration: underline;
+}
+
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pending { background: #FEF3C7; color: #92400E; }
+.status-approved { background: #D1FAE5; color: #065F46; }
+.status-rejected { background: #FEE2E2; color: #991B1B; }
+
+.actions .btn-small {
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+}
+
+.btn-view { background: #E0E7FF; color: #3730A3; }
+.btn-edit { background: #DCFCE7; color: #166534; }
+.btn-delete { background: #FEE2E2; color: #991B1B; }
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6B7280;
+}
+
+.empty-state a {
+    color: #4F46E5;
+    text-decoration: underline;
+}
+
+.loading {
+    text-align: center;
+    padding: 4rem;
+    color: #6B7280;
+    font-size: 1.1rem;
+}

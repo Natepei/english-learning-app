@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './TedVideosPage.css';
 
 const TedVideosPage = () => {
@@ -8,9 +8,11 @@ const TedVideosPage = () => {
     const [selectedVideoId, setSelectedVideoId] = useState(null);
     const [transcript, setTranscript] = useState(null);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
-    const [player, setPlayer] = useState(null);
     const [isTranscribing, setIsTranscribing] = useState(false);
     const [showTranscript, setShowTranscript] = useState(true);
+    
+    // Use a ref to keep track of the player instance preventing re-creation issues
+    const playerRef = useRef(null);
 
     const youtubeApiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
 
@@ -57,7 +59,7 @@ const TedVideosPage = () => {
             }
 
             const data = await response.json();
-            setTranscript(data.transcript); // Now an object, not just text
+            setTranscript(data.transcript); 
         } catch (err) {
             setError(`Error: ${err.message}`);
         } finally {
@@ -65,55 +67,77 @@ const TedVideosPage = () => {
         }
     };    
 
+    // --- FIX: Improved Player Initialization ---
     useEffect(() => {
         if (!selectedVideoId) return;
 
-        // Load YouTube IFrame API if not already loaded
-        if (!window.YT) {
-            const tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api";
-            document.body.appendChild(tag);
-        }
+        const loadVideo = () => {
+            // If player exists, just load the new video
+            if (playerRef.current && playerRef.current.loadVideoById) {
+                playerRef.current.loadVideoById(selectedVideoId);
+                return;
+            }
 
-        // This function will be called by the YouTube API
-        window.onYouTubeIframeAPIReady = () => {
-            if (player) player.destroy();
-            const newPlayer = new window.YT.Player('ted-video-iframe', {
-                events: {
-                    onReady: () => {},
-                }
-            });
-            setPlayer(newPlayer);
+            // Define the initialization function
+            const initPlayer = () => {
+                // Ensure the element exists before trying to attach
+                if (!document.getElementById('ted-video-iframe')) return;
+
+                playerRef.current = new window.YT.Player('ted-video-iframe', {
+                    events: {
+                        onReady: (event) => {
+                            // Player is ready
+                        },
+                        onStateChange: (event) => {
+                            // Handle state changes if needed
+                        }
+                    }
+                });
+            };
+
+            if (!window.YT) {
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                document.body.appendChild(tag);
+                
+                // Allow global callback
+                window.onYouTubeIframeAPIReady = initPlayer;
+            } else {
+                initPlayer();
+            }
         };
 
-        // If API is already loaded
-        if (window.YT && window.YT.Player) {
-            if (player) player.destroy();
-            const newPlayer = new window.YT.Player('ted-video-iframe', {
-                events: {
-                    onReady: () => {},
-                }
-            });
-            setPlayer(newPlayer);
-        }
-        // eslint-disable-next-line
+        loadVideo();
+
+        // Cleanup function
+        return () => {
+            // Optional: destroy player on component unmount
+            // if (playerRef.current) {
+            //     playerRef.current.destroy();
+            //     playerRef.current = null;
+            // }
+        };
     }, [selectedVideoId]);
 
+    // --- Sync Transcript with Player ---
     useEffect(() => {
-        if (!player || !transcript || !transcript.words) return;
+        if (!transcript || !transcript.words) return;
 
-        let interval = setInterval(() => {
-            const currentTime = player.getCurrentTime ? player.getCurrentTime() : 0;
-            const idx = transcript.words.findIndex(
-                (word, i) =>
-                    currentTime * 1000 >= word.start &&
-                    (i === transcript.words.length - 1 || currentTime * 1000 < transcript.words[i + 1].start)
-            );
-            setCurrentWordIndex(idx);
+        const interval = setInterval(() => {
+            // Safely access playerRef
+            if (playerRef.current && playerRef.current.getCurrentTime) {
+                const currentTime = playerRef.current.getCurrentTime();
+                const idx = transcript.words.findIndex(
+                    (word, i) =>
+                        currentTime * 1000 >= word.start &&
+                        (i === transcript.words.length - 1 || currentTime * 1000 < transcript.words[i + 1].start)
+                );
+                setCurrentWordIndex(idx);
+            }
         }, 200);
 
         return () => clearInterval(interval);
-    }, [player, transcript]);
+    }, [transcript]); // Removed 'player' from dependency, relying on ref
 
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">Error: {error}</div>;
@@ -127,9 +151,10 @@ const TedVideosPage = () => {
                         <div className={`video-player-section ${transcript && showTranscript ? 'with-transcript' : ''}`}>
                             <div className="video-player">
                                 {selectedVideoId && (
+                                    /* FIX: Added origin parameter to src */
                                     <iframe
                                         id="ted-video-iframe"
-                                        src={`https://www.youtube.com/embed/${selectedVideoId}?enablejsapi=1`}
+                                        src={`https://www.youtube.com/embed/${selectedVideoId}?enablejsapi=1&origin=${window.location.origin}`}
                                         title="TED Video Player"
                                         frameBorder="0"
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -177,7 +202,6 @@ const TedVideosPage = () => {
                     </div>
                 </div>
 
-                {/* Video list section */}
                 <div className="video-list-section">
                     <h2 className="video-list-title">More TED Talks</h2>
                     <div className="video-list">

@@ -29,11 +29,14 @@ import BlogPage from './pages/BlogPage';
 import BlogPost from './pages/BlogPost';
 import CreateBlog from './pages/CreateBlog';
 import AdminBlogs from './components/admin/AdminBlogs';
+import MyBlogs from './components/profile/MyBlogs';
+import EditBlog from './components/profile/EditBlog';
 
 // ✅ TOEIC Admin Components
 import AdminBooks from './components/admin/AdminBooks';
 import AdminToeicExams from './components/admin/AdminToeicExams';
 import AdminToeicQuestions from './components/admin/AdminToeicQuestions';
+import AdminToeicQuestionDetail from './components/admin/AdminToeicQuestionDetail';
 
 // ✅ TOEIC Student Components
 import ToeicDashboard from './pages/ToeicDashboard';
@@ -77,6 +80,7 @@ function App() {
                 <Route path="books-management" element={<AdminBooks />} />
                 <Route path="exams-management/:bookId" element={<AdminToeicExams />} />
                 <Route path="questions-management/:examId" element={<AdminToeicQuestions />} />
+                <Route path="questions-management/:examId/edit/:questionId" element={<AdminToeicQuestionDetail />} />
               </Route>
 
               {/* User Routes */}
@@ -96,6 +100,8 @@ function App() {
               <Route path="/blogs" element={<BlogPage />} />
               <Route path="/blog/:id" element={<BlogPost />} />
               <Route path="/create-blog" element={<CreateBlog />} />
+              <Route path="/my-blogs" element={<MyBlogs />} />
+              <Route path="/edit-blog/:id" element={<EditBlog />} />
 
               {/* ✅ TOEIC Student Routes */}
               <Route path="/toeic" element={<ToeicDashboard />} />

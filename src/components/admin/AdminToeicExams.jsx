@@ -149,15 +149,6 @@ const AdminToeicExams = () => {
         navigate(`/dashboard/questions-management/${examId}`);
     };
 
-    const getStatusBadge = (status) => {
-        const badges = {
-            draft: { text: 'Nháp', className: 'status-draft' },
-            published: { text: 'Đã publish', className: 'status-published' },
-            archived: { text: 'Lưu trữ', className: 'status-archived' }
-        };
-        return badges[status] || badges.draft;
-    };
-
     const getProgressColor = (current, expected) => {
         const percentage = (current / expected) * 100;
         if (percentage === 100) return '#10B981';
@@ -190,7 +181,6 @@ const AdminToeicExams = () => {
                             <th>Trạng Thái</th>
                             <th>Tiến Độ</th>
                             <th>Lượt Làm</th>
-                            <th>Điểm TB</th>
                             <th>Thao Tác</th>
                         </tr>
                     </thead>
@@ -204,11 +194,6 @@ const AdminToeicExams = () => {
                             return (
                                 <tr key={exam._id}>
                                     <td>{exam.title}</td>
-                                    <td>
-                                        <span className={`status-badge ${getStatusBadge(exam.status).className}`}>
-                                            {getStatusBadge(exam.status).text}
-                                        </span>
-                                    </td>
                                     <td>
                                         <div className="progress-info">
                                             <span style={{ color: getProgressColor(currentQuestions, expectedQuestions) }}>
@@ -235,14 +220,6 @@ const AdminToeicExams = () => {
                                             >
                                                 📝 Câu Hỏi
                                             </button>
-                                            {exam.status === 'draft' && isComplete && (
-                                                <button 
-                                                    className="btn-success-sm" 
-                                                    onClick={() => handlePublish(exam._id)}
-                                                >
-                                                    ✓ Publish
-                                                </button>
-                                            )}
                                             <button 
                                                 className="btn-warning-sm" 
                                                 onClick={() => handleOpenModal(exam)}

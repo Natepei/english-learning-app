@@ -1,75 +1,63 @@
 import express from 'express';
-import { Submission } from '../models/Submission.js';
-import { Exam } from '../models/Exam.js';
-import { Question } from '../models/Question.js';
+import {
+    startSubmission,
+    saveAnswer,
+    submitTest,
+    getSubmission,
+    getUserSubmissions,
+    getExamSubmissions,
+    getReview,
+    deleteSubmission,
+    getUserStats
+} from '../controllers/submissionController.js';
 import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // @route   POST /api/submissions/start
-// @desc    Bắt đầu làm bài test mới
+// @desc    Start a new test submission
 // @access  Private
-router.post('/start', protect, async (req, res) => {
-    try {
-        const { examId, mode } = req.body;
-        console.log('🎯 Starting submission - examId:', examId, 'mode:', mode);
+router.post('/start', protect, startSubmission);
 
-        if (!examId) {
-            return res.status(400).json({ message: 'Vui lòng chọn đề thi' });
-        }
+// @route   PUT /api/submissions/:id/answer
+// @desc    Save an answer (auto-save)
+// @access  Private
+router.put('/:id/answer', protect, saveAnswer);
 
-        // Kiểm tra exam có tồn tại không
-        const exam = await Exam.findById(examId).populate('bookId');
-        console.log('📋 Exam found:', exam ? exam.title : 'NOT FOUND');
-        
-        if (!exam || !exam.isActive) {
-            return res.status(404).json({ message: 'Đề thi không khả dụng' });
-        }
+// @route   PUT /api/submissions/:id/submit
+// @desc    Submit (complete) a test
+// @access  Private
+router.put('/:id/submit', protect, submitTest);
 
-        // Allow both draft and published exams (draft for testing)
-        if (exam.status !== 'published' && exam.status !== 'draft') {
-            return res.status(404).json({ message: 'Đề thi không khả dụng' });
-        }
+// @route   GET /api/submissions/:id
+// @desc    Get submission details
+// @access  Private
+router.get('/:id', protect, getSubmission);
 
-        // Kiểm tra xem user có bài test đang làm dở không
-        const existingSubmission = await Submission.findOne({
-            userId: req.user._id,
-            examId,
-            status: 'in_progress'
-        });
+// @route   GET /api/submissions/user/:userId
+// @desc    Get user's test history
+// @access  Private
+router.get('/user/:userId', protect, getUserSubmissions);
 
-        if (existingSubmission) {
-            return res.json({
-                message: 'Bạn đang có bài test chưa hoàn thành',
-                submission: existingSubmission
-            });
-        }
+// @route   GET /api/submissions/exam/:examId
+// @desc    Get all submissions for an exam (admin)
+// @access  Private/Admin
+router.get('/exam/:examId', protect, admin, getExamSubmissions);
 
-        // Tạo submission mới
-        const submission = await Submission.create({
-            userId: req.user._id,
-            examId,
-            mode: mode || 'practice',
-            startedAt: new Date(),
-            status: 'in_progress',
-            progress: {
-                answeredQuestions: 0,
-                totalQuestions: exam.totalQuestions,
-                completedParts: []
-            }
-        });
+// @route   GET /api/submissions/:id/review
+// @desc    Get detailed answer review
+// @access  Private
+router.get('/:id/review', protect, getReview);
 
-        console.log('✅ Submission created:', submission._id);
-        res.status(201).json({
-            message: 'Bắt đầu làm bài test',
-            submission
-        });
-    } catch (error) {
-        console.error('❌ Error starting submission:', error.message);
-        console.error('Full error:', error);
-        res.status(500).json({ message: 'Lỗi khi bắt đầu làm bài: ' + error.message });
-    }
-});
+// @route   DELETE /api/submissions/:id
+// @desc    Delete a submission
+// @access  Private
+router.delete('/:id', protect, deleteSubmission);
+
+// @route   GET /api/submissions/stats/user/:userId
+// @desc    Get user statistics
+// @access  Private
+router.get('/stats/user/:userId', protect, getUserStats);
 
 // @route   PUT /api/submissions/:id/answer
 // @desc    Lưu câu trả lời (auto-save)
@@ -95,27 +83,29 @@ router.put('/:id/answer', protect, async (req, res) => {
         }
 
         // Lấy đáp án đúng từ question
-        const question = await Question.findOne({
+        // Build query - part is optional, we'll find by examId and questionNumber first
+        let questionQuery = {
             examId: submission.examId,
-            part: parseInt(part),
             questionNumber: parseInt(questionNumber)
-        });
+        };
+        
+        // Add part to query only if it's provided and valid
+        if (part && !isNaN(parseInt(part))) {
+            questionQuery.part = parseInt(part);
+        }
+
+        const question = await Question.findOne(questionQuery);
 
         if (!question) {
-            console.warn('⚠️ Question not found:', { examId: submission.examId, part, questionNumber });
+            console.warn('⚠️ Question not found:', questionQuery);
             return res.status(404).json({ message: 'Không tìm thấy câu hỏi' });
         }
 
         console.log('✅ Question found:', { type: question.questionType, correctAnswer: question.correctAnswer });
 
-        // Xác định đáp án đúng (xử lý đặc biệt cho Part 3, 4, 6, 7)
-        let correctAnswer = question.correctAnswer;
-        if (['Part3', 'Part4', 'Part6', 'Part7'].includes(question.questionType)) {
-            const subQuestion = question.questions.find(q => q.questionNumber === parseInt(questionNumber));
-            if (subQuestion) {
-                correctAnswer = subQuestion.correctAnswer;
-            }
-        }
+        // Get correct answer directly from question
+        // All questions now have a flat structure with correctAnswer field
+        const correctAnswer = question.correctAnswer;
 
         // Tìm và cập nhật hoặc thêm mới câu trả lời
         const existingAnswerIndex = submission.answers.findIndex(
@@ -124,7 +114,7 @@ router.put('/:id/answer', protect, async (req, res) => {
 
         const answerData = {
             questionNumber: parseInt(questionNumber),
-            part: parseInt(part),
+            part: question.part,
             userAnswer: userAnswer ? userAnswer.toUpperCase() : null,
             correctAnswer: correctAnswer.toUpperCase(),
             isCorrect: userAnswer ? userAnswer.toUpperCase() === correctAnswer.toUpperCase() : false
@@ -310,23 +300,7 @@ router.get('/:id/review', protect, async (req, res) => {
                 a => a.questionNumber === question.questionNumber
             );
 
-            // Xử lý đặc biệt cho Part 3, 4, 6, 7 (có nhiều câu hỏi con)
-            if (['Part3', 'Part4', 'Part6', 'Part7'].includes(question.questionType)) {
-                return {
-                    ...question.toObject(),
-                    subQuestions: question.questions.map(subQ => {
-                        const subAnswer = submission.answers.find(
-                            a => a.questionNumber === subQ.questionNumber
-                        );
-                        return {
-                            ...subQ,
-                            userAnswer: subAnswer?.userAnswer || null,
-                            isCorrect: subAnswer?.isCorrect || false
-                        };
-                    })
-                };
-            }
-
+            // All questions are now flat - return with user answer and correctness
             return {
                 ...question.toObject(),
                 userAnswer: userAnswer?.userAnswer || null,

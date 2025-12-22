@@ -12,7 +12,8 @@ const AdminBooks = () => {
         title: '',
         description: '',
         year: new Date().getFullYear(),
-        image: null
+        image: null,
+        status: 'draft' // Changed to string enum
     });
     const [imagePreview, setImagePreview] = useState(null);
     const token = localStorage.getItem('token');
@@ -37,6 +38,29 @@ const AdminBooks = () => {
         }
     };
 
+    // --- UPDATED: Use status string and PATCH endpoint ---
+    const handleTogglePublish = async (book) => {
+        // Toggle logic: if published -> draft, if draft -> published
+        const newStatus = book.status === 'published' ? 'draft' : 'published';
+        const action = newStatus === 'published' ? 'xuất bản' : 'hủy xuất bản';
+        
+        if (!window.confirm(`Bạn có chắc chắn muốn ${action} bộ đề này?`)) return;
+
+        try {
+            await axios.patch(
+                `http://localhost:5000/api/books/${book._id}/status`,
+                { status: newStatus },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            
+            fetchBooks();
+            alert(`Đã ${action} thành công!`);
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Lỗi: Không thể cập nhật trạng thái.');
+        }
+    };
+
     const handleOpenModal = (book = null) => {
         if (book) {
             setEditingBook(book);
@@ -44,7 +68,8 @@ const AdminBooks = () => {
                 title: book.title,
                 description: book.description || '',
                 year: book.year,
-                image: null
+                image: null,
+                status: book.status || 'draft'
             });
             setImagePreview(book.imageUrl ? `http://localhost:5000${book.imageUrl}` : null);
         } else {
@@ -53,7 +78,8 @@ const AdminBooks = () => {
                 title: '',
                 description: '',
                 year: new Date().getFullYear(),
-                image: null
+                image: null,
+                status: 'draft'
             });
             setImagePreview(null);
         }
@@ -63,13 +89,24 @@ const AdminBooks = () => {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingBook(null);
-        setFormData({ title: '', description: '', year: new Date().getFullYear(), image: null });
+        setFormData({ title: '', description: '', year: new Date().getFullYear(), image: null, status: 'draft' });
         setImagePreview(null);
     };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        // For checkbox (isPublished toggle in modal), we convert to status string
+        if (name === 'isPublished') {
+             setFormData(prev => ({ 
+                ...prev, 
+                status: checked ? 'published' : 'draft' 
+            }));
+        } else {
+             setFormData(prev => ({ 
+                ...prev, 
+                [name]: value 
+            }));
+        }
     };
 
     const handleImageChange = (e) => {
@@ -87,6 +124,8 @@ const AdminBooks = () => {
         data.append('title', formData.title);
         data.append('description', formData.description);
         data.append('year', formData.year);
+        data.append('status', formData.status);
+        
         if (formData.image) {
             data.append('image', formData.image);
         }
@@ -149,6 +188,11 @@ const AdminBooks = () => {
                 {books.map(book => (
                     <div key={book._id} className="book-card">
                         <div className="book-image">
+                            {/* Status Badge */}
+                            <div className={`status-badge ${book.status}`}>
+                                {book.status === 'published' ? 'Published' : 'Draft'}
+                            </div>
+
                             {book.imageUrl ? (
                                 <img src={`http://localhost:5000${book.imageUrl}`} alt={book.title} />
                             ) : (
@@ -159,11 +203,17 @@ const AdminBooks = () => {
                             <h3>{book.title}</h3>
                             <p className="book-year">Năm: {book.year}</p>
                             <p className="book-description">{book.description}</p>
-                            <p className="book-exams">Số đề thi: {book.examCount}</p>
+                            <p className="book-exams">Số đề thi: {book.examCount || 0}</p>
                         </div>
                         <div className="book-actions">
                             <button className="btn-info" onClick={() => handleViewExams(book._id)}>
-                                📝 Xem Đề Thi
+                                📝 Xem Đề
+                            </button>
+                            <button 
+                                className={`btn-publish ${book.status === 'published' ? 'unpublish' : 'publish'}`}
+                                onClick={() => handleTogglePublish(book)}
+                            >
+                                {book.status === 'published' ? '🔒 Hủy' : '🚀 Public'}
                             </button>
                             <button className="btn-warning" onClick={() => handleOpenModal(book)}>
                                 ✏️ Sửa
@@ -215,6 +265,19 @@ const AdminBooks = () => {
                                     max={new Date().getFullYear() + 1}
                                     required
                                 />
+                            </div>
+
+                             {/* Checkbox for Status in Form */}
+                             <div className="form-group checkbox-group">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="isPublished"
+                                        checked={formData.status === 'published'}
+                                        onChange={handleInputChange}
+                                    />
+                                    <span style={{marginLeft: '8px'}}>Công khai cho học viên (Publish)</span>
+                                </label>
                             </div>
 
                             <div className="form-group">

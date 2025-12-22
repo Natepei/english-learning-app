@@ -18,6 +18,12 @@ const bookSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    // New Status Field
+    status: {
+        type: String,
+        enum: ['draft', 'published'],
+        default: 'draft'
+    },
     // Số lượng bài test trong bộ đề
     examCount: {
         type: Number,
@@ -29,7 +35,7 @@ const bookSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    // Trạng thái active/inactive
+    // Trạng thái active/inactive (Soft delete)
     isActive: {
         type: Boolean,
         default: true
@@ -51,7 +57,7 @@ bookSchema.virtual('exams', {
 // Middleware để cập nhật examCount khi có exam mới
 bookSchema.methods.updateExamCount = async function() {
     const Exam = mongoose.model('Exam');
-    const count = await Exam.countDocuments({ bookId: this._id });
+    const count = await Exam.countDocuments({ bookId: this._id, isActive: true });
     this.examCount = count;
     await this.save();
 };

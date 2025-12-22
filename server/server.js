@@ -2,11 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
-import ytdl from 'youtube-dl-exec';
+// import ytdl from 'youtube-dl-exec'; // Removed: causing hanging issues
 import axios from 'axios';
 import fs from 'fs';
 import ffmpeg from 'ffmpeg-static';
-import { execSync } from 'child_process';
+import { exec } from 'child_process'; // Changed: Using native exec
+import util from 'util'; // Added: To promisify exec
 import FormData from 'form-data';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -25,6 +26,7 @@ import blogRoutes from './routes/blog.js';
 import bookRoutes from './routes/books.js';
 import examRoutes from './routes/exams.js';
 import questionRoutes from './routes/questions.js';
+import passageRoutes from './routes/passages.js'
 import submissionRoutes from './routes/submissions.js';
 
 import { errorHandler } from './middleware/error.js';
@@ -34,15 +36,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
+
+// Create a Promise-based exec function
+const execPromise = util.promisify(exec);
+
+// --- CONFIGURATION PATHS ---
+// NOTE: We use double backslashes (\\) for Windows paths in JavaScript strings
+const ytDlPath = "D:\\DACN_HuynhNhatHuy_1050080136_THMT2\\english-learning-app\\static\\yt-dlp.exe";
+const cookiesPath = "D:\\DACN_HuynhNhatHuy_1050080136_THMT2\\english-learning-app\\static\\www.youtube.com_cookies.txt";
+
 console.log('MongoDB URI:', process.env.MONGODB_URI);
 
-// Kiểm tra và log đường dẫn ffmpeg
+// Check FFmpeg
 const ffmpegPath = ffmpeg.replace('app.asar', 'app.asar.unpacked');
 console.log('FFmpeg path:', ffmpegPath);
 
 try {
-    execSync(`"${ffmpegPath}" -version`);
-    console.log('FFmpeg is installed and working');
+    // We use quotes around path in case of spaces
+    // execSync(`"${ffmpegPath}" -version`); 
+    console.log('FFmpeg check skipped for now (assuming working based on logs)');
 } catch (error) {
     console.error('FFmpeg error:', error);
 }
@@ -56,10 +68,10 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Serve static files (for uploaded images and audio)
+// ✅ Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Existing routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/auth/users', userRoutes);
 app.use('/api/courses', courseRoutes);
@@ -68,19 +80,17 @@ app.use('/api/exercises', exerciseRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/blogs', blogRoutes);
-
-// ✅ TOEIC Routes
 app.use('/api/books', bookRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/passages', passageRoutes);
 app.use('/api/submissions', submissionRoutes);
-
-// Route to transcribe video audio
-const ytDlPath = "D:\\EnglishStudyWeb\\yt-dlp.exe";
 
 app.post('/api/transcribe', async (req, res) => {
     const { videoId } = req.body;
-    const audioFilePath = `./audio_${videoId}.mp3`;
+    // Use absolute path for safety
+    const audioFileName = `audio_${videoId}.mp3`;
+    const audioFilePath = path.join(__dirname, audioFileName);
 
     try {
         if (!videoId) {
@@ -89,19 +99,25 @@ app.post('/api/transcribe', async (req, res) => {
 
         console.log(`Downloading audio for video: ${videoId}...`);
 
-        // Chạy yt-dlp
-        await ytdl(`https://www.youtube.com/watch?v=${videoId}`, {
-            noCheckCertificates: true,
-            preferFreeFormats: true,
-            extractAudio: true,
-            audioFormat: 'mp3',
-            output: audioFilePath,
-            ffmpegLocation: ffmpegPath
-        });
+        // Delete existing file if present to prevent errors
+        if (fs.existsSync(audioFilePath)) {
+            try { fs.unlinkSync(audioFilePath); } catch (e) {}
+        }
 
-        // Kiểm tra xem tệp đã được tạo chưa
+        // --- NEW DOWNLOAD LOGIC USING COOKIES ---
+        // 1. Construct the command string
+        // 2. We use --cookies to authenticate as a real user
+        // 3. We use --user-agent to look like a browser
+        const command = `"${ytDlPath}" "https://www.youtube.com/watch?v=${videoId}" -x --audio-format mp3 -o "${audioFilePath}" --ffmpeg-location "${ffmpegPath}" --cookies "${cookiesPath}" --no-check-certificates --force-overwrites --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"`;
+
+        console.log('Executing yt-dlp command...');
+        
+        // Execute the command
+        await execPromise(command);
+
+        // Check if file exists
         if (!fs.existsSync(audioFilePath)) {
-            throw new Error('Audio file not found after download');
+            throw new Error('Audio file not found after download process finished.');
         }
 
         console.log('Audio downloaded successfully:', audioFilePath);
@@ -141,7 +157,7 @@ app.post('/api/transcribe', async (req, res) => {
         let transcriptCompleted = false;
         let transcriptData = null;
         let attempts = 0;
-        const maxAttempts = 60;
+        const maxAttempts = 120; // Increased timeout duration
 
         while (!transcriptCompleted && attempts < maxAttempts) {
             const pollResponse = await axios.get(
@@ -150,7 +166,7 @@ app.post('/api/transcribe', async (req, res) => {
             );
 
             const pollData = pollResponse.data;
-            console.log('Transcript status:', pollData.status);
+            // console.log('Transcript status:', pollData.status); // Uncomment to see status updates
 
             if (pollData.status === 'completed') {
                 transcriptData = pollData;
@@ -160,14 +176,14 @@ app.post('/api/transcribe', async (req, res) => {
             }
 
             if (!transcriptCompleted) {
-                await new Promise((resolve) => setTimeout(resolve, 5000));
+                await new Promise((resolve) => setTimeout(resolve, 3000));
                 attempts++;
             }
         }
 
         // Cleanup
         try {
-            fs.unlinkSync(audioFilePath);
+            if (fs.existsSync(audioFilePath)) fs.unlinkSync(audioFilePath);
             console.log('Audio file deleted successfully');
         } catch (err) {
             console.error('Error deleting audio file:', err);
@@ -176,17 +192,15 @@ app.post('/api/transcribe', async (req, res) => {
         res.json({ transcript: transcriptData });
     } catch (err) {
         console.error('Error in transcribe route:', err);
-
         // Cleanup in case of error
         try {
             if (fs.existsSync(audioFilePath)) {
                 fs.unlinkSync(audioFilePath);
             }
-        } catch (cleanupErr) {
-            console.error('Error during cleanup:', cleanupErr);
-        }
+        } catch (cleanupErr) {}
 
-        res.status(500).json({ error: 'Failed to transcribe audio' });
+        // Send detailed error to frontend
+        res.status(500).json({ error: err.message || 'Failed to transcribe audio' });
     }
 });
 

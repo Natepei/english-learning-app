@@ -139,7 +139,6 @@ const AdminBlogs = () => {
                                     <td>
                                         <div className="blog-title-cell">
                                             {blog.title}
-                                            {blog.imageUrl && <span className="has-image">📷</span>}
                                         </div>
                                     </td>
                                     <td>{blog.authorName}</td>

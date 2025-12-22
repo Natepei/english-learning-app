@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminAddQuestion from './AdminAddQuestion';
+import { downloadToeicTemplate, TEMPLATE_INSTRUCTIONS } from '../../utils/excelTemplateGenerator';
 import './AdminToeicQuestions.css';
-import { renderQuestionForm } from './QuestionForms';
 
 const AdminToeicQuestions = () => {
     const { examId } = useParams();
@@ -12,14 +13,19 @@ const AdminToeicQuestions = () => {
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState(null);
-    const [showModal, setShowModal] = useState(false);
     const [showExcelModal, setShowExcelModal] = useState(false);
-    const [formData, setFormData] = useState({});
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
     const [excelFile, setExcelFile] = useState(null);
     const [audioFiles, setAudioFiles] = useState([]);
     const [imageFiles, setImageFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
     const token = localStorage.getItem('token');
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadStatus, setUploadStatus] = useState('');
+    const [uploadResults, setUploadResults] = useState(null);
+    const [showInstructions, setShowInstructions] = useState(false);
+    const [approvingExam, setApprovingExam] = useState(false);
 
     const partInfo = {
         1: { name: 'Part 1 - Photographs', count: 6, hasAudio: true, hasImage: true },
@@ -74,136 +80,6 @@ const AdminToeicQuestions = () => {
         }
     };
 
-    const handleOpenModal = () => {
-        resetForm();
-        setShowModal(true);
-    };
-
-    const resetForm = () => {
-        const baseForm = {
-            examId,
-            questionNumber: '',
-            correctAnswer: '',
-            explanation: ''
-        };
-
-        if (selectedPart === 1) {
-            setFormData({ ...baseForm, audio: null, image: null });
-        } else if (selectedPart === 2) {
-            setFormData({ ...baseForm, audio: null });
-        } else if ([3, 4].includes(selectedPart)) {
-            setFormData({
-                ...baseForm,
-                audio: null,
-                image: null,
-                [selectedPart === 3 ? 'conversationNumber' : 'talkNumber']: '',
-                questions: [
-                    { questionNumber: '', questionText: '', options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' },
-                    { questionNumber: '', questionText: '', options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' },
-                    { questionNumber: '', questionText: '', options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' }
-                ]
-            });
-        } else if (selectedPart === 5) {
-            setFormData({
-                ...baseForm,
-                sentence: '',
-                options: { A: '', B: '', C: '', D: '' },
-                grammarPoint: ''
-            });
-        } else if (selectedPart === 6) {
-            setFormData({
-                ...baseForm,
-                passageNumber: '',
-                passageText: '',
-                questions: [
-                    { questionNumber: '', blankPosition: 1, options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' },
-                    { questionNumber: '', blankPosition: 2, options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' },
-                    { questionNumber: '', blankPosition: 3, options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' },
-                    { questionNumber: '', blankPosition: 4, options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' }
-                ]
-            });
-        } else if (selectedPart === 7) {
-            setFormData({
-                ...baseForm,
-                passageNumber: '',
-                passageType: 'single',
-                passages: [{ title: '', content: '', type: '' }],
-                questions: [
-                    { questionNumber: '', questionText: '', options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' },
-                    { questionNumber: '', questionText: '', options: { A: '', B: '', C: '', D: '' }, correctAnswer: '' }
-                ]
-            });
-        } else {
-            setFormData(baseForm);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const formDataToSend = new FormData();
-        
-        // Common fields
-        formDataToSend.append('examId', examId);
-        if (formData.explanation) formDataToSend.append('explanation', formData.explanation);
-
-        // Part-specific handling
-        if (selectedPart === 1) {
-            formDataToSend.append('questionNumber', formData.questionNumber);
-            formDataToSend.append('correctAnswer', formData.correctAnswer);
-            if (formData.audio) formDataToSend.append('audio', formData.audio);
-            if (formData.image) formDataToSend.append('image', formData.image);
-        } else if (selectedPart === 2) {
-            formDataToSend.append('questionNumber', formData.questionNumber);
-            formDataToSend.append('correctAnswer', formData.correctAnswer);
-            if (formData.audio) formDataToSend.append('audio', formData.audio);
-        } else if ([3, 4].includes(selectedPart)) {
-            if (selectedPart === 3) {
-                formDataToSend.append('conversationNumber', formData.conversationNumber);
-            } else {
-                formDataToSend.append('talkNumber', formData.talkNumber);
-            }
-            if (formData.audio) formDataToSend.append('audio', formData.audio);
-            if (formData.image) formDataToSend.append('image', formData.image);
-            formDataToSend.append('questions', JSON.stringify(formData.questions));
-        } else if (selectedPart === 5) {
-            formDataToSend.append('questionNumber', formData.questionNumber);
-            formDataToSend.append('sentence', formData.sentence);
-            formDataToSend.append('options', JSON.stringify(formData.options));
-            formDataToSend.append('correctAnswer', formData.correctAnswer);
-            if (formData.grammarPoint) formDataToSend.append('grammarPoint', formData.grammarPoint);
-        } else if (selectedPart === 6) {
-            formDataToSend.append('passageNumber', formData.passageNumber);
-            formDataToSend.append('passageText', formData.passageText);
-            formDataToSend.append('questions', JSON.stringify(formData.questions));
-        } else if (selectedPart === 7) {
-            formDataToSend.append('passageNumber', formData.passageNumber);
-            formDataToSend.append('passageType', formData.passageType);
-            formDataToSend.append('passages', JSON.stringify(formData.passages));
-            formDataToSend.append('questions', JSON.stringify(formData.questions));
-        }
-
-        try {
-            await axios.post(
-                `http://localhost:5000/api/questions/part${selectedPart}`,
-                formDataToSend,
-                { 
-                    headers: { 
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data'
-                    } 
-                }
-            );
-            alert('Tạo câu hỏi thành công!');
-            setShowModal(false);
-            fetchQuestions();
-            fetchExamData();
-        } catch (error) {
-            console.error('Error creating question:', error);
-            alert('Lỗi: ' + (error.response?.data?.message || 'Không thể tạo câu hỏi'));
-        }
-    };
-
     const handleDelete = async (questionId) => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
 
@@ -220,27 +96,60 @@ const AdminToeicQuestions = () => {
         }
     };
 
+    const handleApproveExam = async () => {
+        if (!overview?.isComplete) {
+            alert('❌ Đề thi chưa đủ 200 câu hỏi, không thể duyệt!');
+            return;
+        }
+
+        if (!window.confirm('Bạn có chắc chắn muốn duyệt đề thi này?\n\nSau khi duyệt, người dùng sẽ có thể làm bài.')) {
+            return;
+        }
+
+        try {
+            setApprovingExam(true);
+            const response = await axios.put(
+                `http://localhost:5000/api/exams/${examId}/approve`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert('✅ Duyệt đề thi thành công!');
+            fetchExamData();
+        } catch (error) {
+            console.error('Error approving exam:', error);
+            alert('❌ Lỗi: ' + (error.response?.data?.message || 'Không thể duyệt đề thi'));
+        } finally {
+            setApprovingExam(false);
+        }
+    };
+
     const handleOpenExcelModal = () => {
         setExcelFile(null);
         setAudioFiles([]);
         setImageFiles([]);
+        setUploadProgress(0);
+        setUploadStatus('');
+        setUploadResults(null);
         setShowExcelModal(true);
     };
-
+    
     const handleCloseExcelModal = () => {
         setShowExcelModal(false);
         setExcelFile(null);
         setAudioFiles([]);
         setImageFiles([]);
+        setUploadProgress(0);
+        setUploadStatus('');
+        setUploadResults(null);
     };
 
     const handleExcelFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv')) {
                 setExcelFile(file);
             } else {
-                alert('Vui lòng chọn file Excel (.xlsx hoặc .xls)');
+                alert('Vui lòng chọn file Excel (.xlsx, .xls) hoặc CSV (.csv)');
             }
         }
     };
@@ -264,21 +173,27 @@ const AdminToeicQuestions = () => {
         }
 
         setUploading(true);
+        setUploadStatus('uploading');
+        setUploadProgress(0);
+        setUploadResults(null);
 
         try {
             const formDataToSend = new FormData();
             formDataToSend.append('excel', excelFile);
             formDataToSend.append('examId', examId);
-            formDataToSend.append('preserveFilename', 'true');
 
-            // Add audio files
             audioFiles.forEach(file => {
                 formDataToSend.append('audio', file);
             });
 
-            // Add image files
             imageFiles.forEach(file => {
                 formDataToSend.append('image', file);
+            });
+
+            console.log('📤 Uploading:', {
+                excel: excelFile.name,
+                audioCount: audioFiles.length,
+                imageCount: imageFiles.length
             });
 
             const response = await axios.post(
@@ -291,26 +206,49 @@ const AdminToeicQuestions = () => {
                     },
                     onUploadProgress: (progressEvent) => {
                         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        console.log(`Upload progress: ${percentCompleted}%`);
+                        setUploadProgress(percentCompleted);
+                        if (percentCompleted === 100) {
+                            setUploadStatus('processing');
+                        }
                     }
                 }
             );
 
-            alert(response.data.message);
-            if (response.data.results.errors.length > 0) {
-                console.warn('Errors:', response.data.results.errors);
-                alert('Một số câu hỏi có lỗi. Vui lòng kiểm tra console để xem chi tiết.');
+            setUploadStatus('complete');
+            setUploadResults(response.data.results);
+
+            const { success, failed } = response.data.results;
+            alert(`✅ Upload thành công!\n\n📊 Kết quả:\n- Thành công: ${success} câu hỏi\n- Thất bại: ${failed} câu hỏi${failed > 0 ? '\n\n⚠️ Xem console để biết chi tiết lỗi' : ''}`);
+
+            if (failed > 0) {
+                console.group('❌ Upload Errors');
+                response.data.results.errors.forEach(error => console.error(error));
+                console.groupEnd();
             }
 
-            handleCloseExcelModal();
-            fetchQuestions();
-            fetchExamData();
+            if (success > 0) {
+                console.group('✅ Upload Success');
+                response.data.results.details?.forEach(detail => console.log(detail));
+                console.groupEnd();
+
+                setTimeout(() => {
+                    handleCloseExcelModal();
+                    fetchQuestions();
+                    fetchExamData();
+                }, 2000);
+            }
         } catch (error) {
-            console.error('Error uploading Excel:', error);
-            alert('Lỗi: ' + (error.response?.data?.message || 'Không thể upload Excel'));
+            setUploadStatus('error');
+            console.error('❌ Error:', error);
+            alert(`❌ Lỗi: ${error.response?.data?.message || 'Không thể upload'}`);
         } finally {
             setUploading(false);
         }
+    };
+
+    const handleDownloadTemplate = () => {
+        downloadToeicTemplate();
+        alert('✅ Đã tải template thành công!\n\nVui lòng xem hướng dẫn sử dụng bằng cách nhấn nút "📖 Hướng dẫn"');
     };
 
     if (loading) return <div className="admin-loading">Đang tải...</div>;
@@ -353,10 +291,18 @@ const AdminToeicQuestions = () => {
                 <div className="section-header">
                     <h2>{partInfo[selectedPart].name}</h2>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <button className="btn-primary" onClick={handleOpenModal}>
-                            ➕ Thêm Câu Hỏi
+                        <button 
+                            className="btn-primary" 
+                            onClick={() => setShowAddModal(true)}
+                            style={{ backgroundColor: '#3B82F6' }}
+                        >
+                            ➕ Add Question
                         </button>
-                        <button className="btn-success" onClick={handleOpenExcelModal} style={{ backgroundColor: '#10B981' }}>
+                        <button 
+                            className="btn-success" 
+                            onClick={handleOpenExcelModal} 
+                            style={{ backgroundColor: '#10B981' }}
+                        >
                             📊 Upload Excel
                         </button>
                     </div>
@@ -365,7 +311,10 @@ const AdminToeicQuestions = () => {
                 <div className="questions-list">
                     {questions.length === 0 ? (
                         <div className="empty-state">
-                            <p>Chưa có câu hỏi nào. Hãy thêm câu hỏi mới!</p>
+                            <p>Chưa có câu hỏi nào. Hãy upload file Excel!</p>
+                            <button className="btn-primary" onClick={handleOpenExcelModal}>
+                                📤 Upload Questions
+                            </button>
                         </div>
                     ) : (
                         <table>
@@ -381,17 +330,51 @@ const AdminToeicQuestions = () => {
                                 {questions.map(q => (
                                     <tr key={q._id}>
                                         <td>Q{q.questionNumber}</td>
-                                        <td>
-                                            {q.sentence && q.sentence.substring(0, 50)}
-                                            {q.audioUrl && <span className="badge-audio">🔊 Audio</span>}
-                                            {q.imageUrl && <span className="badge-image">🖼️ Image</span>}
-                                            {q.questions && <span className="badge-multi">× {q.questions.length}</span>}
+                                        <td style={{ maxWidth: '500px', wordBreak: 'break-word' }}>
+                                            <div style={{ fontSize: '13px', lineHeight: '1.4' }}>
+                                                {q.questionText && q.questionText.includes('<') ? (
+                                                    <div dangerouslySetInnerHTML={{ __html: q.questionText }} />
+                                                ) : (
+                                                    <div>{q.questionText && q.questionText.substring(0, 150)}</div>
+                                                )}
+                                            </div>
+                                            <div style={{ marginTop: '8px' }}>
+                                                {q.audioUrl && <span className="badge-audio">🔊 Audio</span>}
+                                                {q.imageUrl && <span className="badge-image">🖼️ Image</span>}
+                                                {q.groupNumber && <span className="badge-multi">Group {q.groupNumber}</span>}
+                                            </div>
                                         </td>
                                         <td><strong>{q.correctAnswer}</strong></td>
-                                        <td>
+                                        <td style={{ display: 'flex', gap: '8px' }}>
+                                            <button 
+                                                className="btn-edit-sm"
+                                                onClick={() => navigate(`/dashboard/questions-management/${examId}/edit/${q._id}`)}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    background: '#3b82f6',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600'
+                                                }}
+                                            >
+                                                ✏️ Sửa
+                                            </button>
                                             <button 
                                                 className="btn-danger-sm" 
                                                 onClick={() => handleDelete(q._id)}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    background: '#ef4444',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600'
+                                                }}
                                             >
                                                 🗑️ Xóa
                                             </button>
@@ -404,38 +387,65 @@ const AdminToeicQuestions = () => {
                 </div>
             </div>
 
-            {/* Modal with Dynamic Form */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
-                        <h2>Thêm Câu Hỏi {partInfo[selectedPart].name}</h2>
-                        <form onSubmit={handleSubmit}>
-                            {renderQuestionForm(selectedPart, formData, setFormData)}
-
-                            <div className="modal-actions">
-                                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                                    Hủy
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    Tạo Câu Hỏi
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
             {/* Excel Upload Modal */}
             {showExcelModal && (
                 <div className="modal-overlay" onClick={handleCloseExcelModal}>
                     <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
                         <h2>📊 Upload Câu Hỏi Từ Excel</h2>
+                        
+                        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+                            <button 
+                                onClick={handleDownloadTemplate}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: '#3B82F6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                📥 Download Template
+                            </button>
+                            <button 
+                                onClick={() => setShowInstructions(!showInstructions)}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: '#8B5CF6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                📖 {showInstructions ? 'Ẩn' : 'Hiện'} Hướng dẫn
+                            </button>
+                        </div>
+
+                        {showInstructions && (
+                            <div style={{
+                                background: '#F3F4F6',
+                                padding: '15px',
+                                borderRadius: '8px',
+                                marginBottom: '20px',
+                                whiteSpace: 'pre-wrap',
+                                fontFamily: 'monospace',
+                                fontSize: '12px',
+                                maxHeight: '300px',
+                                overflow: 'auto'
+                            }}>
+                                {TEMPLATE_INSTRUCTIONS}
+                            </div>
+                        )}
+
                         <form onSubmit={handleExcelUpload}>
                             <div className="form-group">
-                                <label>File Excel (.xlsx, .xls) *</label>
+                                <label>File Excel (.xlsx, .xls, .csv) *</label>
                                 <input
                                     type="file"
-                                    accept=".xlsx,.xls"
+                                    accept=".xlsx,.xls,.csv"
                                     onChange={handleExcelFileChange}
                                     required
                                 />
@@ -444,15 +454,10 @@ const AdminToeicQuestions = () => {
                                         ✓ Đã chọn: {excelFile.name}
                                     </p>
                                 )}
-                                <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
-                                    File Excel phải có các cột: questionContent, optionA, optionB, optionC, optionD, 
-                                    correctOption, questionImage, questionScript, questionAudio, questionExplanation, 
-                                    orderNumber, questionPassage, questionPart
-                                </small>
                             </div>
 
                             <div className="form-group">
-                                <label>Audio Files (nhiều file) *</label>
+                                <label>Audio Files (nhiều file)</label>
                                 <input
                                     type="file"
                                     accept="audio/*"
@@ -464,9 +469,6 @@ const AdminToeicQuestions = () => {
                                         ✓ Đã chọn {audioFiles.length} file audio
                                     </p>
                                 )}
-                                <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
-                                    Upload tất cả file audio được tham chiếu trong Excel. Tên file phải khớp chính xác với tên trong cột questionAudio.
-                                </small>
                             </div>
 
                             <div className="form-group">
@@ -482,27 +484,55 @@ const AdminToeicQuestions = () => {
                                         ✓ Đã chọn {imageFiles.length} file ảnh
                                     </p>
                                 )}
-                                <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
-                                    Upload tất cả file ảnh được tham chiếu trong Excel. Tên file phải khớp chính xác với tên trong cột questionImage.
-                                </small>
                             </div>
 
-                            <div style={{ 
-                                background: '#FEF3C7', 
-                                padding: '15px', 
-                                borderRadius: '8px', 
-                                marginBottom: '20px',
-                                border: '1px solid #FCD34D'
-                            }}>
-                                <h4 style={{ marginTop: 0 }}>⚠️ Lưu ý:</h4>
-                                <ul style={{ margin: '10px 0', paddingLeft: '20px' }}>
-                                    <li>Tên file audio/image phải khớp chính xác với tên trong Excel (bao gồm cả phần mở rộng)</li>
-                                    <li>Part 3 và Part 4: Mỗi conversation/talk cần 3 câu hỏi liên tiếp</li>
-                                    <li>Part 6: Mỗi passage cần 4 câu hỏi liên tiếp</li>
-                                    <li>Part 7: Mỗi passage có 2-5 câu hỏi</li>
-                                    <li>Hệ thống sẽ tự động nhóm câu hỏi dựa trên questionPassage hoặc orderNumber</li>
-                                </ul>
-                            </div>
+                            {uploadStatus === 'uploading' && (
+                                <div style={{ marginBottom: '15px' }}>
+                                    <div style={{ 
+                                        width: '100%', 
+                                        height: '30px', 
+                                        background: '#E5E7EB', 
+                                        borderRadius: '15px',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div style={{
+                                            width: `${uploadProgress}%`,
+                                            height: '100%',
+                                            background: '#10B981',
+                                            transition: 'width 0.3s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: 'white',
+                                            fontWeight: 'bold'
+                                        }}>
+                                            {uploadProgress}%
+                                        </div>
+                                    </div>
+                                    <p style={{ textAlign: 'center', marginTop: '5px', color: '#6B7280' }}>
+                                        Đang upload...
+                                    </p>
+                                </div>
+                            )}
+
+                            {uploadStatus === 'processing' && (
+                                <p style={{ textAlign: 'center', color: '#F59E0B', marginBottom: '15px' }}>
+                                    ⚙️ Đang xử lý dữ liệu...
+                                </p>
+                            )}
+
+                            {uploadStatus === 'complete' && uploadResults && (
+                                <div style={{ 
+                                    background: '#D1FAE5', 
+                                    padding: '15px', 
+                                    borderRadius: '8px',
+                                    marginBottom: '15px'
+                                }}>
+                                    <h4 style={{ color: '#065F46', marginTop: 0 }}>✅ Kết quả:</h4>
+                                    <p>✓ Thành công: {uploadResults.success} câu hỏi</p>
+                                    <p>✗ Thất bại: {uploadResults.failed} câu hỏi</p>
+                                </div>
+                            )}
 
                             <div className="modal-actions">
                                 <button 
@@ -524,6 +554,30 @@ const AdminToeicQuestions = () => {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* Add Question Modal */}
+            {showAddQuestionModal && (
+                <AdminAddQuestion
+                    examId={examId}
+                    part={selectedPart}
+                    onClose={() => setShowAddQuestionModal(false)}
+                    onSuccess={() => {
+                        fetchQuestions();
+                        fetchExamData();
+                    }}
+                />
+            )}
+            {showAddModal && (
+                <AdminAddQuestion
+                    examId={examId}
+                    part={selectedPart}
+                    onClose={() => setShowAddModal(false)}
+                    onSuccess={() => {
+                        fetchQuestions();
+                        fetchExamData();
+                    }}
+                />
             )}
         </div>
     );

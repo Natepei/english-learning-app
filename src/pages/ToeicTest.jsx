@@ -1,444 +1,425 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import useTestSession from '../hooks/useTestSession';
-import { calculateAllScores } from '../utils/scoreCalculator';
-
-// Components
-import TestTimer from '../components/test/TestTimer';
-import TestNavigation from '../components/test/TestNavigation';
-import TestProgressBar from '../components/test/TestProgressBar';
-import AnswerReview from '../components/test/AnswerReview';
-
-// Part Components
-import Part1Question from '../components/test/Part1Question';
-import Part2Question from '../components/test/Part2Question';
-import Part3Question from '../components/test/Part3Question';
-import Part4Question from '../components/test/Part4Question';
-import Part5Question from '../components/test/Part5Question';
-import Part6Question from '../components/test/Part6Question';
-import Part7Question from '../components/test/Part7Question';
-
 import './ToeicTest.css';
 
 const ToeicTest = () => {
-    const { submissionId } = useParams();
-    const navigate = useNavigate();
-    const token = localStorage.getItem('token');
+  const { submissionId } = useParams();
+  const navigate = useNavigate();
+  
+  const [submission, setSubmission] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [passages, setPassages] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [timeRemaining, setTimeRemaining] = useState(7200);
+  const [showReview, setShowReview] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  
+  const token = localStorage.getItem('token');
 
-    // Main state
-    const [submission, setSubmission] = useState(null);
-    const [questions, setQuestions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [timeRemaining, setTimeRemaining] = useState(0);
-    const [showReview, setShowReview] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState(null);
-
-    // Use test session hook for state management
-    const testSession = useTestSession(questions, submission);
-
-    // Debug logging
-    useEffect(() => {
-        console.log('🎯 ToeicTest mounted with submissionId:', submissionId);
-    }, [submissionId]);
-
-    useEffect(() => {
-        console.log('📊 State changed:', {
-            loading,
-            submissionLoaded: !!submission,
-            questionsCount: questions.length,
-            error
+  // Load test data
+  useEffect(() => {
+    const loadTest = async () => {
+      try {
+        const subRes = await axios.get(`http://localhost:5000/api/submissions/${submissionId}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-    }, [loading, submission, questions, error]);
-
-    // Fetch test data on mount
-    useEffect(() => {
-        fetchTestData();
-    }, [submissionId]);
-
-    // Handle timer countdown
-    useEffect(() => {
-        if (timeRemaining <= 0 || !submission) {
-            return;
-        }
-
-        const timer = setInterval(() => {
-            setTimeRemaining(prev => {
-                if (prev <= 1) {
-                    handleSubmitTest();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [timeRemaining, submission]);
-
-    /**
-     * Fetch submission and questions
-     */
-    const fetchTestData = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            
-            console.log('🔄 Fetching submission:', submissionId);
-            // First, get the submission to find the exam ID
-            const submissionRes = await axios.get(
-                `http://localhost:5000/api/submissions/${submissionId}`, 
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            
-            console.log('✅ Submission loaded:', submissionRes.data);
-            const sub = submissionRes.data;
-            const examId = sub.examId._id || sub.examId;
-            console.log('📝 Exam ID extracted:', examId);
-            
-            console.log('🔄 Fetching questions for exam:', examId);
-            // Then fetch questions for that exam
-            const questionsRes = await axios.get(
-                `http://localhost:5000/api/questions/exam/${examId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            console.log('✅ Questions loaded:', questionsRes.data.length, 'questions');
-            setSubmission(sub);
-            setQuestions(questionsRes.data);
-            
-            if (!questionsRes.data || questionsRes.data.length === 0) {
-                console.warn('⚠️ No questions found for this exam!');
-                setError('Không tìm thấy câu hỏi cho bộ đề này');
-            }
-
-            // Calculate remaining time
-            console.log('📋 Submission data:', { 
-                examId: sub.examId, 
-                startedAt: sub.startedAt,
-                duration: sub.examId?.duration 
-            });
-            
-            // Get exam duration - handle both object and string ID
-            const duration = typeof sub.examId === 'object' ? sub.examId.duration : 120;
-            const examDuration = (duration || 120) * 60; // Convert to seconds, default to 120 min
-            
-            const startTime = new Date(sub.startedAt).getTime();
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const remaining = Math.max(0, examDuration - elapsed);
-            
-            console.log('⏱️ Time calculation:', { 
-                examDuration, 
-                elapsed, 
-                remaining,
-                isValidNumber: !isNaN(remaining)
-            });
-            
-            setTimeRemaining(remaining);
-        } catch (error) {
-            console.error('❌ Error fetching test data:', error);
-            console.error('Error response:', error.response?.data);
-            setError(`Lỗi: ${error.response?.data?.message || error.message}`);
-            alert('Error loading test. Redirecting to exams list.');
-            navigate('/dashboard/exams');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    /**
-     * Handle answer selection and auto-save
-     */
-    const handleSelectAnswer = async (questionNumber, answer, part) => {
-        testSession.handleAnswer(questionNumber, answer, async (qNum, ans) => {
-            // Auto-save to server
-            try {
-                await axios.put(
-                    `http://localhost:5000/api/submissions/${submissionId}/answer`,
-                    {
-                        questionNumber: qNum,
-                        part: part,
-                        userAnswer: ans
-                    },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-            } catch (error) {
-                console.error('Error saving answer:', error);
-            }
+        
+        const sub = subRes.data;
+        setSubmission(sub);
+        
+        const examId = sub.examId?._id || sub.examId;
+        
+        const [qRes, pRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/questions/exam/${examId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`http://localhost:5000/api/passages/exam/${examId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+        
+        const sortedQuestions = qRes.data.sort((a, b) => a.questionNumber - b.questionNumber);
+        setQuestions(sortedQuestions);
+        setPassages(pRes.data);
+        
+        const initialAnswers = {};
+        sub.answers?.forEach(ans => {
+          initialAnswers[ans.questionNumber] = ans.userAnswer;
         });
+        setAnswers(initialAnswers);
+        
+        const elapsed = Math.floor((Date.now() - new Date(sub.startedAt)) / 1000);
+        const duration = (sub.examId?.duration || 120) * 60;
+        setTimeRemaining(Math.max(0, duration - elapsed));
+        
+      } catch (error) {
+        console.error('Load error:', error);
+        alert('Không thể tải bài thi');
+        navigate('/toeic');
+      } finally {
+        setLoading(false);
+      }
     };
+    
+    loadTest();
+  }, [submissionId, token, navigate]);
 
-    /**
-     * Handle audio play event
-     */
-    const handleAudioPlay = (questionNumber, part) => {
-        // Track audio plays if needed
-    };
-
-    /**
-     * Submit test
-     */
-    const handleSubmitTest = async () => {
-        if (showReview && !window.confirm('Are you sure you want to submit? You cannot change your answers after submission.')) {
-            return;
+  // Timer
+  useEffect(() => {
+    if (timeRemaining <= 0) return;
+    
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          handleSubmit();
+          return 0;
         }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [timeRemaining]);
 
-        setIsSubmitting(true);
-        try {
-            const answerArray = testSession.getAnswersArray();
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
-            // Calculate scores
-            const scores = calculateAllScores(
-                answerArray.map(ans => {
-                    const question = findQuestion(ans.questionNumber);
-                    return {
-                        part: ans.part,
-                        isCorrect: question ? ans.userAnswer === question.correctAnswer : false
-                    };
-                })
-            );
-
-            // Submit to server
-            const response = await axios.put(
-                `http://localhost:5000/api/submissions/${submissionId}/submit`,
-                {
-                    answers: answerArray,
-                    timeSpent: Math.floor((new Date(submission.startedAt).getTime() - Date.now()) / 1000) + submission.examId.duration * 60,
-                    scores
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            // Redirect to results
-            navigate(`/toeic/result/${submissionId}`);
-        } catch (error) {
-            console.error('Error submitting test:', error);
-            alert('Error submitting test. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    /**
-     * Find question by number
-     */
-    const findQuestion = (questionNumber) => {
-        for (let part = 1; part <= 7; part++) {
-            const partQuestions = testSession.questionsGrouped[part];
-            if (!partQuestions) continue;
-
-            if ([3, 4, 6, 7].includes(part)) {
-                for (const group of partQuestions) {
-                    const found = group.questions.find(q => q.questionNumber === questionNumber);
-                    if (found) return found;
-                }
-            } else {
-                const found = partQuestions.find(q => q.questionNumber === questionNumber);
-                if (found) return found;
-            }
-        }
-        return null;
-    };
-
-    /**
-     * Render part-specific question component
-     */
-    const renderPartComponent = () => {
-        const currentQuestion = testSession.getCurrentQuestion();
-        const progress = testSession.getProgress();
-
-        if (!currentQuestion) {
-            return <div className="loading-message">Loading question...</div>;
-        }
-
-        const partTotal = testSession.getPartTotalQuestions();
-        const answersByPart = testSession.answeredCount[testSession.currentPart] || 0;
-
-        const commonProps = {
-            onNext: testSession.goToNext,
-            onPrevious: testSession.goToPrevious,
-            canGoNext: !testSession.isAtEndOfPart(),
-            canGoPrevious: !testSession.isAtStartOfPart(),
-            mode: submission?.mode || 'practice',
-            onAudioPlay: handleAudioPlay
-        };
-
-        switch (testSession.currentPart) {
-            case 1:
-                return (
-                    <Part1Question
-                        question={currentQuestion}
-                        currentIndex={testSession.currentPartIndex}
-                        totalQuestions={partTotal}
-                        selectedAnswer={testSession.getAnswer(currentQuestion.questionNumber)}
-                        onSelectAnswer={handleSelectAnswer}
-                        {...commonProps}
-                    />
-                );
-
-            case 2:
-                return (
-                    <Part2Question
-                        question={currentQuestion}
-                        currentIndex={testSession.currentPartIndex}
-                        totalQuestions={partTotal}
-                        selectedAnswer={testSession.getAnswer(currentQuestion.questionNumber)}
-                        onSelectAnswer={handleSelectAnswer}
-                        {...commonProps}
-                    />
-                );
-
-            case 3:
-                return (
-                    <Part3Question
-                        conversation={currentQuestion}
-                        conversationIndex={testSession.currentPartIndex}
-                        totalConversations={testSession.getPartItemCount()}
-                        selectedAnswers={testSession.answers}
-                        onSelectAnswer={handleSelectAnswer}
-                        {...commonProps}
-                    />
-                );
-
-            case 4:
-                return (
-                    <Part4Question
-                        talk={currentQuestion}
-                        talkIndex={testSession.currentPartIndex}
-                        totalTalks={testSession.getPartItemCount()}
-                        selectedAnswers={testSession.answers}
-                        onSelectAnswer={handleSelectAnswer}
-                        {...commonProps}
-                    />
-                );
-
-            case 5:
-                return (
-                    <Part5Question
-                        question={currentQuestion}
-                        currentIndex={testSession.currentPartIndex}
-                        totalQuestions={partTotal}
-                        selectedAnswer={testSession.getAnswer(currentQuestion.questionNumber)}
-                        onSelectAnswer={handleSelectAnswer}
-                        {...commonProps}
-                    />
-                );
-
-            case 6:
-                return (
-                    <Part6Question
-                        passage={currentQuestion}
-                        passageIndex={testSession.currentPartIndex}
-                        totalPassages={testSession.getPartItemCount()}
-                        selectedAnswers={testSession.answers}
-                        onSelectAnswer={handleSelectAnswer}
-                        {...commonProps}
-                    />
-                );
-
-            case 7:
-                return (
-                    <Part7Question
-                        passageSet={currentQuestion}
-                        passageIndex={testSession.currentPartIndex}
-                        totalPassages={testSession.getPartItemCount()}
-                        selectedAnswers={testSession.answers}
-                        onSelectAnswer={handleSelectAnswer}
-                        {...commonProps}
-                    />
-                );
-
-            default:
-                return <div>Unknown part</div>;
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="test-loading">
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                    <h2>⏳ Đang tải bài test...</h2>
-                    <p>Vui lòng chờ...</p>
-                    {error && <p style={{ color: 'red' }}>⚠️ {error}</p>}
-                </div>
-            </div>
-        );
+  const handleAnswer = async (questionNumber, answer) => {
+    const newAnswers = { ...answers, [questionNumber]: answer };
+    setAnswers(newAnswers);
+    
+    try {
+      const question = questions.find(q => q.questionNumber === questionNumber);
+      await axios.put(
+        `http://localhost:5000/api/submissions/${submissionId}/answer`,
+        {
+          questionNumber,
+          part: question?.part,
+          userAnswer: answer
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      console.error('Failed to save answer:', error);
     }
+  };
 
-    if (error) {
-        return (
-            <div className="test-loading">
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                    <h2>❌ Lỗi</h2>
-                    <p>{error}</p>
-                </div>
-            </div>
-        );
+  const goToQuestion = (index) => {
+    setCurrentQuestionIndex(index);
+  };
+
+  const goNext = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
     }
+  };
 
-    if (!submission) return <div className="test-loading">Error loading test</div>;
+  const goPrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
 
-    const progress = testSession.getProgress();
+  const handleSubmit = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn nộp bài?')) return;
+    
+    setSubmitting(true);
+    try {
+      await axios.put(
+        `http://localhost:5000/api/submissions/${submissionId}/submit`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert('✅ Nộp bài thành công!');
+      navigate(`/toeic/result/${submissionId}`);
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('Lỗi khi nộp bài');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
+  const renderQuestion = () => {
+    if (questions.length === 0) return <div className="no-questions">Không có câu hỏi</div>;
+    
+    const question = questions[currentQuestionIndex];
+    if (!question) return <div className="no-questions">Câu hỏi không tồn tại</div>;
+    
+    const part = question.part;
+    let passage = null;
+    
+    if ([6, 7].includes(part) && question.groupId) {
+      passage = passages.find(p => p._id === question.groupId);
+    }
+    
     return (
-        <div className="test-container">
-            {/* Fixed Header */}
-            <TestTimer timeRemaining={timeRemaining} onTimeUp={handleSubmitTest} />
-
-            <div className="test-main">
-                {/* Sidebar Navigation */}
-                <div className="test-sidebar">
-                    <TestNavigation
-                        currentPart={testSession.currentPart}
-                        onPartSelect={testSession.goToPart}
-                        questionsGrouped={testSession.questionsGrouped}
-                        answers={testSession.answers}
-                    />
-                </div>
-
-                {/* Main Content */}
-                <div className="test-content">
-                    {/* Progress Bar */}
-                    <TestProgressBar
-                        currentProgress={progress}
-                        totalQuestions={200}
-                    />
-
-                    {/* Question Component */}
-                    <div className="question-container">
-                        {renderPartComponent()}
-                    </div>
-
-                    {/* Review & Submit Section */}
-                    <div className="submit-section">
-                        <button
-                            className="btn-review"
-                            onClick={() => setShowReview(true)}
-                        >
-                            Review Answers
-                        </button>
-                        <button
-                            className="btn-submit"
-                            onClick={handleSubmitTest}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Submitting...' : 'Submit Test'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Answer Review Modal */}
-            {showReview && (
-                <AnswerReview
-                    questionsGrouped={testSession.questionsGrouped}
-                    answers={testSession.answers}
-                    onClose={() => setShowReview(false)}
-                    onSubmit={handleSubmitTest}
-                />
+      <div className="question-content">
+        {/* Part Badge */}
+        <div className="part-badge">Part {part}</div>
+        
+        {/* Listening Section (Parts 1-4) */}
+        {[1, 2, 3, 4].includes(part) && (
+          <div className="listening-section">
+            {/* Audio Player */}
+            {question.audioUrl && (
+              <div className="audio-container">
+                <audio 
+                  controls 
+                  src={`http://localhost:5000${question.audioUrl}`}
+                  controlsList="nodownload"
+                >
+                  Your browser does not support audio.
+                </audio>
+              </div>
             )}
+            
+            {/* Image for Part 1 */}
+            {part === 1 && question.imageUrl && (
+              <div className="question-image-container">
+                <img 
+                  src={`http://localhost:5000${question.imageUrl}`} 
+                  alt={`Question ${question.questionNumber}`}
+                />
+              </div>
+            )}
+            
+            {/* Transcript */}
+            {question.questionScript && (
+              <div className="transcript-section">
+                <strong>Transcript:</strong>
+                <div className="transcript-content">{question.questionScript}</div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Reading Section (Parts 5-7) - Show passage on left */}
+        {[6, 7].includes(part) && passage && (
+          <div className="reading-layout">
+            <div className="passage-column">
+              <div className="passage-header">
+                <h3>READING PASSAGE {question.groupNumber || ''}</h3>
+                <p className="passage-subtitle">
+                  You should spend about 20 minutes on Questions {passage.questionNumbers?.[0]}-{passage.questionNumbers?.[passage.questionNumbers.length - 1]}, which are based on Reading Passage {question.groupNumber || ''} below.
+                </p>
+              </div>
+              {passage.passages.map((p, idx) => (
+                <div key={idx} className="passage-text">
+                  {p.title && <h4>{p.title}</h4>}
+                  {p.content.includes('<') ? (
+                    <div dangerouslySetInnerHTML={{ __html: p.content }} />
+                  ) : (
+                    <div style={{ whiteSpace: 'pre-wrap' }}>{p.content}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Question Area */}
+        <div className={[6, 7].includes(part) ? "questions-column" : "questions-full"}>
+          <div className="question-header-bar">
+            <span className="question-number-badge">{question.questionNumber}</span>
+            <span className="question-title">
+              {question.questionText ? (
+                question.questionText.includes('<') ? (
+                  <div dangerouslySetInnerHTML={{ __html: question.questionText }} />
+                ) : (
+                  question.questionText
+                )
+              ) : (
+                `Question ${question.questionNumber}`
+              )}
+            </span>
+            <span className="bookmark-icon">💡</span>
+          </div>
+          
+          {/* Part 5 - Show sentence with blank */}
+          {part === 5 && question.questionText && (
+            <div className="sentence-text">
+              {question.questionText}
+            </div>
+          )}
+          
+          {/* Options */}
+          <div className="options-list">
+            {['A', 'B', 'C', 'D'].map(option => (
+              <div 
+                key={option}
+                className={`option-item ${answers[question.questionNumber] === option ? 'selected' : ''}`}
+                onClick={() => handleAnswer(question.questionNumber, option)}
+              >
+                <div className="option-letter">{option}</div>
+                <div className="option-text">{question.options[option] || '(Empty)'}</div>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
     );
+  };
+
+  if (loading) {
+    return (
+      <div className="test-loading">
+        <div className="spinner"></div>
+        <p>Đang tải bài thi...</p>
+      </div>
+    );
+  }
+
+  const progress = (Object.keys(answers).length / 200) * 100;
+
+  return (
+    <div className="yola-test-container">
+      {/* Top Bar */}
+      <div className="yola-top-bar">
+        <div className="test-title-section">
+          <h1>{submission?.examId?.title || 'Test 1'}</h1>
+          <p className="progress-text">{Object.keys(answers).length} / 200 câu đã làm</p>
+        </div>
+        <div className="timer-section">
+          <div className={`timer-display ${timeRemaining < 600 ? 'warning' : ''}`}>
+            ⏰ {formatTime(timeRemaining)}
+          </div>
+        </div>
+      </div>
+      
+      {/* Main Layout */}
+      <div className="yola-main-layout">
+        {/* Left Sidebar - Question Navigator */}
+        <div className="yola-sidebar">
+          <div className="questions-navigator">
+            <div className="part-sections">
+              {[1, 2, 3, 4, 5, 6, 7].map(part => {
+                const partQuestions = questions.filter(q => q.part === part);
+                if (partQuestions.length === 0) return null;
+                
+                return (
+                  <div key={part} className="part-section">
+                    <div className="part-section-header">Part {part}</div>
+                    <div className="part-questions-grid">
+                      {partQuestions.map((q, idx) => {
+                        const globalIdx = questions.findIndex(gq => gq._id === q._id);
+                        return (
+                          <button
+                            key={q._id}
+                            className={`q-nav-btn 
+                              ${currentQuestionIndex === globalIdx ? 'current' : ''}
+                              ${answers[q.questionNumber] ? 'answered' : ''}
+                            `}
+                            onClick={() => goToQuestion(globalIdx)}
+                          >
+                            {q.questionNumber}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Legend */}
+            <div className="navigator-legend">
+              <div className="legend-item">
+                <span className="legend-box answered"></span>
+                <span>Đã làm</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-box current"></span>
+                <span>Hiện tại</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-box"></span>
+                <span>Chưa làm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Right Content Area */}
+        <div className="yola-content">
+          {renderQuestion()}
+          
+          {/* Bottom Navigation */}
+          <div className="bottom-navigation">
+            <button 
+              className="nav-btn prev-btn"
+              onClick={goPrevious}
+              disabled={currentQuestionIndex === 0}
+            >
+              ← Previous
+            </button>
+            
+            <button 
+              className="nav-btn next-btn"
+              onClick={goNext}
+              disabled={currentQuestionIndex === questions.length - 1}
+            >
+              Next →
+            </button>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="action-buttons">
+            <button className="review-btn" onClick={() => setShowReview(true)}>
+              📋 Review Answers
+            </button>
+            <button 
+              className="submit-btn" 
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? '⏳ Đang nộp...' : '✅ Nộp Bài'}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Review Modal */}
+      {showReview && (
+        <div className="modal-overlay" onClick={() => setShowReview(false)}>
+          <div className="review-modal" onClick={e => e.stopPropagation()}>
+            <h2>Review Your Answers</h2>
+            <div className="review-grid">
+              {questions.map((q, idx) => (
+                <div 
+                  key={q._id}
+                  className={`review-cell ${answers[q.questionNumber] ? 'answered' : 'unanswered'}`}
+                  onClick={() => {
+                    setShowReview(false);
+                    goToQuestion(idx);
+                  }}
+                >
+                  <span className="q-num">Q{q.questionNumber}</span>
+                  <span className="q-ans">{answers[q.questionNumber] || '—'}</span>
+                </div>
+              ))}
+            </div>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setShowReview(false)}>
+                Close
+              </button>
+              <button className="btn-primary" onClick={handleSubmit}>
+                Submit Test
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default ToeicTest;

@@ -36,7 +36,7 @@ const Navbar = () => {
                         <li><Link to="/ted-videos">TED Videos</Link></li>
                         <li><Link to="/grammarly">Ngữ pháp</Link></li>
                         <li><Link to="/blogs">Blog</Link></li>
-                        <li><Link to="/toeic">📚 TOEIC</Link></li>
+                        <li><Link to="/toeic">TOEIC Test</Link></li>
                         {user && user.role === 'admin' && (
                             <li><Link to="/dashboard">Quản Trị</Link></li>
                         )}
@@ -78,7 +78,7 @@ const Navbar = () => {
                     <li><Link to="/ted-videos">TED Videos</Link></li>
                     <li><Link to="/grammarly">Ngữ pháp</Link></li>
                     <li><Link to="/blogs">Blog</Link></li>
-                    <li><Link to="/toeic">📚 TOEIC Test</Link></li>
+                    <li><Link to="/toeic">TOEIC Test</Link></li>
                     {user && user.role === 'admin' && (
                         <li><Link to="/dashboard">Quản Trị</Link></li>
                     )}

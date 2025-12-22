@@ -162,48 +162,6 @@ const ToeicExamDetail = () => {
                     </div>
                 </div>
 
-                {/* Test Mode Selection */}
-                <div className="test-mode-selection">
-                    <h2>🎮 Chế Độ Làm Bài</h2>
-                    <div className="mode-options">
-                        <label className={`mode-option ${mode === 'practice' ? 'selected' : ''}`}>
-                            <input
-                                type="radio"
-                                name="mode"
-                                value="practice"
-                                checked={mode === 'practice'}
-                                onChange={(e) => setMode(e.target.value)}
-                            />
-                            <div className="mode-content">
-                                <h3>🎯 Chế độ Luyện tập</h3>
-                                <ul>
-                                    <li>✓ Có thể nghe audio nhiều lần</li>
-                                    <li>✓ Xem đáp án sau khi nộp bài</li>
-                                    <li>✓ Không giới hạn thời gian nghiêm ngặt</li>
-                                </ul>
-                            </div>
-                        </label>
-
-                        <label className={`mode-option ${mode === 'real_exam' ? 'selected' : ''}`}>
-                            <input
-                                type="radio"
-                                name="mode"
-                                value="real_exam"
-                                checked={mode === 'real_exam'}
-                                onChange={(e) => setMode(e.target.value)}
-                            />
-                            <div className="mode-content">
-                                <h3>🔥 Chế độ Thi Thật</h3>
-                                <ul>
-                                    <li>⚠️ Audio chỉ phát 1 lần duy nhất</li>
-                                    <li>⚠️ Giới hạn thời gian nghiêm ngặt</li>
-                                    <li>⚠️ Giống điều kiện thi thật nhất</li>
-                                </ul>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
                 {/* Instructions */}
                 <div className="test-instructions">
                     <h2>⚠️ Lưu Ý Quan Trọng</h2>
