@@ -51,8 +51,6 @@ export const getApiBaseUrl = () => {
   return baseURL;
 };
 
-export default api;
-
 /**
  * Helper function to get the base server URL (without /api)
  * @returns {string} The base server URL
