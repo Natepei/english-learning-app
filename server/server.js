@@ -150,37 +150,26 @@ app.post('/api/transcribe', async (req, res) => {
             downloaded = true;
             console.log('✅ Downloaded via ytdl-core');
         } catch (err) {
-            console.error(`⚠️ ytdl-core failed: ${err.message}`);
-
-            // === BẮT ĐẦU ĐOẠN SỬA ===
+            console.warn('⚠️ ytdl-core failed:', err.message);
+            
+            // Try method 2: yt-dlp via Python module
             try {
                 console.log('📥 Trying yt-dlp fallback...');
                 const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
                 
-                // 1. KHAI BÁO CÁC BIẾN ĐƯỜNG DẪN (Bạn bị thiếu dòng này nên nó báo lỗi)
-                const ffmpegDir = path.join(__dirname, 'bin');
-                const cookiePath = path.join(__dirname, 'cookies.txt'); // <-- ĐÂY LÀ DÒNG QUAN TRỌNG NHẤT
-                
-                // 2. Xử lý đường dẫn cho Windows (thay \ thành /)
-                const safeFfmpegDir = ffmpegDir.replace(/\\/g, '/');
-                const safeCookiePath = cookiePath.replace(/\\/g, '/');
-                const safeAudioPath = audioFilePath.replace(/\\/g, '/');
-
-                // 3. Tạo lệnh chạy (Command)
-                const cmd = `python -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${safeFfmpegDir}" --cookies "${safeCookiePath}" --no-check-certificate -o "${safeAudioPath}" "${videoUrl}"`;
+                // Use yt-dlp Python module to download audio with ffmpeg location
+                const ffmpegDir = path.dirname(ffmpegPath);
+                const cmd = `python -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${audioFilePath}" "${videoUrl}"`;
                 
                 console.log('Running yt-dlp command...');
-                // console.log(cmd); // Bỏ comment dòng này nếu muốn xem lệnh đầy đủ
-
                 await execPromise(cmd);
                 
                 downloaded = true;
                 console.log('✅ Downloaded via yt-dlp');
             } catch (ytdlpErr) {
-                console.error(`⚠️ yt-dlp also failed: ${ytdlpErr.message}`);
+                console.warn('⚠️ yt-dlp also failed:', ytdlpErr.message);
                 throw new Error(`All download methods failed. ytdl-core: ${err.message}. yt-dlp: ${ytdlpErr.message}`);
             }
-            // === KẾT THÚC ĐOẠN SỬA ===
         }
 
         // Verify file exists

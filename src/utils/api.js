@@ -1,7 +1,22 @@
 // src/utils/api.js
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getBaseURL = () => {
+  // Production environment (Vercel)
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // If running on non-localhost domain (e.g., Vercel), use the API from Render
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://english-learning-app-w7lk.onrender.com/api';
+  }
+  
+  // Development environment (localhost)
+  return 'http://localhost:5000/api';
+};
+
+const baseURL = getBaseURL();
 
 const api = axios.create({
   baseURL,

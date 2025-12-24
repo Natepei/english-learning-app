@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import { getApiUrl } from '../../utils/api';
 import './Auth.css';
 
 function Login() {
@@ -12,12 +13,10 @@ function Login() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const { login } = useAuth(); // Gọi hàm login từ AuthContext
-
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${API_URL}/auth/login`, formData);
+            const response = await axios.post(getApiUrl('auth/login'), formData);
             const userData = response.data;
             // Lưu thông tin người dùng vào context
             login(userData);
