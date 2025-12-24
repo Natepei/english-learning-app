@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './AdminToeicExams.css';
 
@@ -26,10 +27,10 @@ const AdminToeicExams = () => {
         try {
             setLoading(true);
             const [bookRes, examsRes] = await Promise.all([
-                axios.get(`http://localhost:5000/api/books/${bookId}`, {
+                axios.get(`${getApiBaseUrl()}/books/${bookId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                axios.get(`http://localhost:5000/api/exams?bookId=${bookId}`, {
+                axios.get(`${getApiBaseUrl()}/exams?bookId=${bookId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
             ]);
@@ -41,7 +42,7 @@ const AdminToeicExams = () => {
             for (const exam of examsRes.data) {
                 try {
                     const overview = await axios.get(
-                        `http://localhost:5000/api/exams/${exam._id}/questions-overview`,
+                        `${getApiBaseUrl()}/exams/${exam._id}/questions-overview`,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                     overviews[exam._id] = overview.data;
@@ -92,14 +93,14 @@ const AdminToeicExams = () => {
         try {
             if (editingExam) {
                 await axios.put(
-                    `http://localhost:5000/api/exams/${editingExam._id}`,
+                    `${getApiBaseUrl()}/exams/${editingExam._id}`,
                     formData,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 alert('Cập nhật đề thi thành công!');
             } else {
                 await axios.post(
-                    'http://localhost:5000/api/exams',
+                    getApiBaseUrl() + '/exams',
                     { ...formData, bookId },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
@@ -123,7 +124,7 @@ const AdminToeicExams = () => {
             // First, delete all submissions for this exam
             console.log('🗑️ Deleting exam submissions...');
             const submissionResponse = await axios.delete(
-                `http://localhost:5000/api/submissions/exam/${examId}`,
+                `${getApiBaseUrl()}/submissions/exam/${examId}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             const deletedCount = submissionResponse.data?.deletedCount || 0;
@@ -131,7 +132,7 @@ const AdminToeicExams = () => {
 
             // Then delete the exam itself
             console.log('🗑️ Deleting exam...');
-            await axios.delete(`http://localhost:5000/api/exams/${examId}`, {
+            await axios.delete(`${getApiBaseUrl()}/exams/${examId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
@@ -151,7 +152,7 @@ const AdminToeicExams = () => {
 
         try {
             await axios.put(
-                `http://localhost:5000/api/exams/${examId}/publish`,
+                `${getApiBaseUrl()}/exams/${examId}/publish`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

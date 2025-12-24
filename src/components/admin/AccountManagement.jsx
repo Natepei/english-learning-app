@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './AccountManagement.css';
 
@@ -28,7 +29,7 @@ const AccountManagement = () => {
                     return;
                 }
 
-                const res = await fetch("http://localhost:5000/api/auth/users", {
+                const res = await fetch(getApiBaseUrl() + '/auth/users', {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -63,7 +64,7 @@ const AccountManagement = () => {
             }
 
             const response = await axios.post(
-                'http://localhost:5000/api/auth/users',
+                getApiBaseUrl() + '/auth/users',
                 newUser,
                 {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -80,7 +81,7 @@ const AccountManagement = () => {
     const handleEditUser = async (id) => {
         try {
             const response = await axios.put(
-                `http://localhost:5000/api/auth/users/${id}`,
+                `${getApiBaseUrl()}/auth/users/${id}`,
                 editingUser,
                 {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -101,7 +102,7 @@ const AccountManagement = () => {
         }
 
         try {
-            await axios.delete(`http://localhost:5000/api/auth/users/${id}`, {
+            await axios.delete(`${getApiBaseUrl()}/auth/users/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
 
             });

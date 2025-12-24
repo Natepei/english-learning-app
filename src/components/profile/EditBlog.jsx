@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -56,7 +57,7 @@ const EditBlog = () => {
 
     const fetchCourses = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/courses');
+            const res = await axios.get(getApiBaseUrl() + '/courses');
             setCourses(res.data);
         } catch (err) {
             console.error(err);
@@ -65,7 +66,7 @@ const EditBlog = () => {
 
     const fetchLessons = async (courseId) => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/lessons?courseId=${courseId}`);
+            const res = await axios.get(`${getApiBaseUrl()}/lessons?courseId=${courseId}`);
             setLessons(res.data);
         } catch (err) {
             console.error(err);
@@ -74,7 +75,7 @@ const EditBlog = () => {
 
     const fetchBlog = async () => {
         try {
-            const res = await axios.get(`http://localhost:5000/api/blogs/${id}`, {
+            const res = await axios.get(`${getApiBaseUrl()}/blogs/${id}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             const b = res.data;
@@ -116,7 +117,7 @@ const EditBlog = () => {
             const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(t => t);
 
             await axios.put(
-                `http://localhost:5000/api/blogs/${id}`,
+                `${getApiBaseUrl()}/blogs/${id}`,
                 {
                     ...formData,
                     tags: tagsArray,

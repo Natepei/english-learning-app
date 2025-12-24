@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import './AdminLessons.css';
@@ -18,7 +19,7 @@ const AdminLessonsPage = () => {
 
     const fetchLessons = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/lessons/${courseId}`, {
+            const response = await axios.get(`${getApiBaseUrl()}/lessons/${courseId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -33,7 +34,7 @@ const AdminLessonsPage = () => {
 
     const handleAddLesson = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/api/lessons', {
+            const response = await axios.post(getApiBaseUrl() + '/lessons', {
                 ...newLesson,
                 courseId,
             }, {
@@ -51,7 +52,7 @@ const AdminLessonsPage = () => {
 
     const handleUpdateLesson = async (id) => {
         try {
-            const response = await axios.put(`http://localhost:5000/api/lessons/${id}`, editingLesson, {
+            const response = await axios.put(`${getApiBaseUrl()}/lessons/${id}`, editingLesson, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -68,7 +69,7 @@ const AdminLessonsPage = () => {
         if (!window.confirm('Are you sure you want to delete this lesson?')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/lessons/${id}`, {
+            await axios.delete(`${getApiBaseUrl()}/lessons/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

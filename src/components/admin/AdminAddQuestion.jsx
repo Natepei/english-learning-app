@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './AdminAddQuestion.css';
 
@@ -36,7 +37,7 @@ const AdminAddQuestion = ({ examId, part, onClose, onSuccess }) => {
     React.useEffect(() => {
         const fetchExamOverview = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/exams/${examId}/questions-overview`, {
+                const response = await axios.get(`${getApiBaseUrl()}/exams/${examId}/questions-overview`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setTotalQuestions(response.data.totalQuestions || 0);
@@ -122,7 +123,7 @@ const AdminAddQuestion = ({ examId, part, onClose, onSuccess }) => {
 
             // Use universal create endpoint
             await axios.post(
-                'http://localhost:5000/api/questions/create',
+                getApiBaseUrl() + '/questions/create',
                 submitData,
                 {
                     headers: {

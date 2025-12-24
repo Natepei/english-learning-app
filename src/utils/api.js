@@ -44,6 +44,16 @@ export const getApiUrl = (endpoint) => {
 };
 
 /**
+ * Get the base API URL (without trailing slash)
+ * Can be used for direct URL construction
+ */
+export const getApiBaseUrl = () => {
+  return baseURL;
+};
+
+export default api;
+
+/**
  * Helper function to get the base server URL (without /api)
  * @returns {string} The base server URL
  */

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import { Volume2, Heart, HeartOff } from 'lucide-react';
 import './WordDetails.css';
@@ -28,7 +29,7 @@ const WordDetails = () => {
                 // Check if word is in favorites
                 if (user) {
                     const favResponse = await axios.get(
-                        `http://localhost:5000/api/favorites/${user._id}`,
+                        `${getApiBaseUrl()}/favorites/${user._id}`,
                         {
                             headers: { Authorization: `Bearer ${user.token}` }
                         }
@@ -58,14 +59,14 @@ const WordDetails = () => {
         try {
             if (isFavorite) {
                 await axios.delete(
-                    `http://localhost:5000/api/favorites/${user._id}/${word}`,
+                    `${getApiBaseUrl()}/favorites/${user._id}/${word}`,
                     {
                         headers: { Authorization: `Bearer ${user.token}` }
                     }
                 );
             } else {
                 await axios.post(
-                    `http://localhost:5000/api/favorites/${user._id}`,
+                    `${getApiBaseUrl()}/favorites/${user._id}`,
                     {
                         word,
                         phonetic: wordData.phonetic,

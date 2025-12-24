@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './AdminBlogs.css';
 
@@ -26,7 +27,7 @@ const AdminBlogs = () => {
 
             console.log('Fetching blogs with params:', params);
 
-            const response = await axios.get('http://localhost:5000/api/blogs', {
+            const response = await axios.get(getApiBaseUrl() + '/blogs', {
                 headers: { 'Authorization': `Bearer ${token}` },
                 params
             });
@@ -44,7 +45,7 @@ const AdminBlogs = () => {
     const handleUpdateStatus = async (blogId, status) => {
         try {
             await axios.put(
-                `http://localhost:5000/api/blogs/${blogId}/status`,
+                `${getApiBaseUrl()}/blogs/${blogId}/status`,
                 { status },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
@@ -61,7 +62,7 @@ const AdminBlogs = () => {
 
         try {
             await axios.delete(
-                `http://localhost:5000/api/blogs/${blogId}`,
+                `${getApiBaseUrl()}/blogs/${blogId}`,
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             fetchBlogs();

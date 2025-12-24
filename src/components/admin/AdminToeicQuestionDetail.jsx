@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './AdminToeicQuestionDetail.css';
 
@@ -24,7 +25,7 @@ const AdminToeicQuestionDetail = () => {
         try {
             setLoading(true);
             const response = await axios.get(
-                `http://localhost:5000/api/questions/${questionId}`,
+                `${getApiBaseUrl()}/questions/${questionId}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setQuestion(response.data);
@@ -126,7 +127,7 @@ const AdminToeicQuestionDetail = () => {
             }
 
             const response = await axios.put(
-                `http://localhost:5000/api/questions/${questionId}`,
+                `${getApiBaseUrl()}/questions/${questionId}`,
                 formDataToSend,
                 {
                     headers: {

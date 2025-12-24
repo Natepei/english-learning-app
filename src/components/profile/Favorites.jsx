@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './Favorites.css';
 
@@ -14,7 +15,7 @@ const Favorites = () => {
             try {
                 setLoading(true);
                 const favoritesResponse = await axios.get(
-                    `http://localhost:5000/api/favorites/${user._id}`,
+                    `${getApiBaseUrl()}/favorites/${user._id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${user.token}`,

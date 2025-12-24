@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './AdminCourses.css';
 
@@ -18,7 +19,7 @@ const AdminCoursesPage = () => {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/courses', {
+                const response = await axios.get(getApiBaseUrl() + '/courses', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -36,7 +37,7 @@ const AdminCoursesPage = () => {
 
     const handleAddCourse = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/api/courses', newCourse, {
+            const response = await axios.post(getApiBaseUrl() + '/courses', newCourse, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -53,7 +54,7 @@ const AdminCoursesPage = () => {
     const handleUpdateCourse = async (id) => {
         try {
             const response = await axios.put(
-                `http://localhost:5000/api/courses/${id}`,
+                `${getApiBaseUrl()}/courses/${id}`,
                 editingCourse,
                 {
                     headers: {
@@ -75,7 +76,7 @@ const AdminCoursesPage = () => {
 
         try {
             await axios.delete(
-                `http://localhost:5000/api/courses/${id}`,
+                `${getApiBaseUrl()}/courses/${id}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`

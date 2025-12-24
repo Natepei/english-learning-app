@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import AdminAddQuestion from './AdminAddQuestion';
 import { downloadToeicTemplate, TEMPLATE_INSTRUCTIONS } from '../../utils/excelTemplateGenerator';
@@ -51,10 +52,10 @@ const AdminToeicQuestions = () => {
         try {
             setLoading(true);
             const [examRes, overviewRes] = await Promise.all([
-                axios.get(`http://localhost:5000/api/exams/${examId}`, {
+                axios.get(`${getApiBaseUrl()}/exams/${examId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                axios.get(`http://localhost:5000/api/exams/${examId}/questions-overview`, {
+                axios.get(`${getApiBaseUrl()}/exams/${examId}/questions-overview`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
             ]);
@@ -71,7 +72,7 @@ const AdminToeicQuestions = () => {
     const fetchQuestions = async () => {
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/questions/exam/${examId}/part/${selectedPart}`,
+                `${getApiBaseUrl()}/questions/exam/${examId}/part/${selectedPart}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setQuestions(response.data);
@@ -84,7 +85,7 @@ const AdminToeicQuestions = () => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/questions/${questionId}`, {
+            await axios.delete(`${getApiBaseUrl()}/questions/${questionId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert('✅ Xóa câu hỏi thành công!');
@@ -110,7 +111,7 @@ const AdminToeicQuestions = () => {
         try {
             setApprovingExam(true);
             const response = await axios.put(
-                `http://localhost:5000/api/exams/${examId}/approve`,
+                `${getApiBaseUrl()}/exams/${examId}/approve`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -198,7 +199,7 @@ const AdminToeicQuestions = () => {
             });
 
             const response = await axios.post(
-                'http://localhost:5000/api/questions/bulk-upload',
+                getApiBaseUrl() + '/questions/bulk-upload',
                 formDataToSend,
                 {
                     headers: {

@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './Profile.css';
 
@@ -21,7 +22,7 @@ const Profile = () => {
 
                 // Progress
                 const progressResponse = await fetch(
-                    `http://localhost:5000/api/progress/${user._id}`,
+                    `${getApiBaseUrl()}/progress/${user._id}`,
                     { headers: { Authorization: `Bearer ${user.token}` } }
                 );
                 if (progressResponse.ok) {
@@ -32,14 +33,14 @@ const Profile = () => {
 
                 // Favorites
                 const favoritesResponse = await axios.get(
-                    `http://localhost:5000/api/favorites/${user._id}`,
+                    `${getApiBaseUrl()}/favorites/${user._id}`,
                     { headers: { Authorization: `Bearer ${user.token}` } }
                 );
                 setFavoriteWords(favoritesResponse.data);
 
                 // My Blogs count
                 const blogsResponse = await axios.get(
-                    `http://localhost:5000/api/blogs?author=${user._id}`,
+                    `${getApiBaseUrl()}/blogs?author=${user._id}`,
                     { headers: { Authorization: `Bearer ${user.token}` } }
                 );
                 setMyBlogsCount(blogsResponse.data.length);

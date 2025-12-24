@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import './AdminExercises.css';
@@ -23,7 +24,7 @@ const AdminExercisesPage = () => {
 
     const fetchExercises = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/exercises/${lessonId}`, {
+            const response = await axios.get(`${getApiBaseUrl()}/exercises/${lessonId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -92,7 +93,7 @@ const AdminExercisesPage = () => {
         const filteredOptions = newExercise.options.filter(opt => opt.trim() !== '');
         
         try {
-            const response = await axios.post('http://localhost:5000/api/exercises', {
+            const response = await axios.post(getApiBaseUrl() + '/exercises', {
                 ...newExercise,
                 options: filteredOptions,
                 lessonId: lessonId,
@@ -120,7 +121,7 @@ const AdminExercisesPage = () => {
         
         try {
             const response = await axios.put(
-                `http://localhost:5000/api/exercises/${id}`,
+                `${getApiBaseUrl()}/exercises/${id}`,
                 {
                     ...editingExercise,
                     options: filteredOptions
@@ -143,7 +144,7 @@ const AdminExercisesPage = () => {
         if (!window.confirm('Are you sure you want to delete this exercise?')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/exercises/${id}`, {
+            await axios.delete(`${getApiBaseUrl()}/exercises/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

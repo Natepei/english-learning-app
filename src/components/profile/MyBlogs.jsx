@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getApiBaseUrl } from '../../utils/api';
 import axios from 'axios';
 import './MyBlogs.css';
 
@@ -13,7 +14,7 @@ const MyBlogs = () => {
     const fetchMyBlogs = async () => {
         try {
             const res = await axios.get(
-                `http://localhost:5000/api/blogs?author=${user._id}`,
+                `${getApiBaseUrl()}/blogs?author=${user._id}`,
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
             setBlogs(res.data);
@@ -33,7 +34,7 @@ const MyBlogs = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Xóa blog này vĩnh viễn? Không thể khôi phục!')) return;
         try {
-            await axios.delete(`http://localhost:5000/api/blogs/${id}`, {
+            await axios.delete(`${getApiBaseUrl()}/blogs/${id}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
             fetchMyBlogs(); // refresh list
