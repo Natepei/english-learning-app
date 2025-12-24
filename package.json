@@ -46,8 +46,7 @@
     "startbootstrap-sb-admin-2": "^4.1.4",
     "sweetalert2": "^11.15.10",
     "tailwind-merge": "^2.6.0",
-    "xlsx": "^0.18.5",
-    "youtube-dl-exec": "^3.0.13"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
