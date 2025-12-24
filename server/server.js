@@ -161,12 +161,21 @@ app.post('/api/transcribe', async (req, res) => {
                 // Use yt-dlp Python module to download audio with ffmpeg location
                 const ffmpegDir = path.dirname(ffmpegPath).replace(/\\/g, '/');  // Convert backslashes to forward slashes
                 const normalizedAudioPath = audioFilePath.replace(/\\/g, '/');   // Normalize path for command
-                const cmd = `yt-dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
+                
+                // Try with 'py' command (Windows Python launcher) first, then fall back to 'python'
+                let cmd = `py -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
                 
                 console.log('Running yt-dlp command...');
                 console.log('FFmpeg location:', ffmpegDir);
                 console.log('Output path:', normalizedAudioPath);
-                await execPromise(cmd);
+                
+                try {
+                    await execPromise(cmd);
+                } catch (pyErr) {
+                    console.warn('⚠️ "py" command failed, trying "python"...');
+                    cmd = `python -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
+                    await execPromise(cmd);
+                }
                 
                 downloaded = true;
                 console.log('✅ Downloaded via yt-dlp');
