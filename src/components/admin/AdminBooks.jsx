@@ -27,7 +27,7 @@ const AdminBooks = () => {
     const fetchBooks = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/books', {
+            const response = await axios.get(getApiUrl('books'), {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setBooks(response.data);
@@ -49,7 +49,7 @@ const AdminBooks = () => {
 
         try {
             await axios.patch(
-                `http://localhost:5000/api/books/${book._id}/status`,
+                getApiUrl(`books/${book._id}/status`),
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -72,7 +72,8 @@ const AdminBooks = () => {
                 image: null,
                 status: book.status || 'draft'
             });
-            setImagePreview(book.imageUrl ? `http://localhost:5000${book.imageUrl}` : null);
+            const baseURL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : (window.location.hostname !== 'localhost' ? 'https://english-learning-app-w7lk.onrender.com' : 'http://localhost:5000');
+            setImagePreview(book.imageUrl ? `${baseURL}${book.imageUrl}` : null);
         } else {
             setEditingBook(null);
             setFormData({
@@ -134,14 +135,14 @@ const AdminBooks = () => {
         try {
             if (editingBook) {
                 await axios.put(
-                    `http://localhost:5000/api/books/${editingBook._id}`,
+                    getApiUrl(`books/${editingBook._id}`),
                     data,
                     { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
                 );
                 alert('Cập nhật sách thành công!');
             } else {
                 await axios.post(
-                    'http://localhost:5000/api/books',
+                    getApiUrl('books'),
                     data,
                     { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
                 );
@@ -159,7 +160,7 @@ const AdminBooks = () => {
         if (!window.confirm('Bạn có chắc chắn muốn xóa sách này?')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/books/${bookId}`, {
+            await axios.delete(getApiUrl(`books/${bookId}`), {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert('✅ Xóa sách thành công!');
@@ -196,7 +197,7 @@ const AdminBooks = () => {
                             </div>
 
                             {book.imageUrl ? (
-                                <img src={`http://localhost:5000${book.imageUrl}`} alt={book.title} />
+                                <img src={`${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : (window.location.hostname !== 'localhost' ? 'https://english-learning-app-w7lk.onrender.com' : 'http://localhost:5000')}${book.imageUrl}`} alt={book.title} />
                             ) : (
                                 <div className="no-image">📚</div>
                             )}
