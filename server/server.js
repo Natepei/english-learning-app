@@ -79,7 +79,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/auth/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/exercises', exerciseRoutes);
