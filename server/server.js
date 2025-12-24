@@ -6,7 +6,7 @@ import ytdl from '@distube/ytdl-core';
 import axios from 'axios';
 import fs from 'fs';
 import ffmpeg from 'ffmpeg-static';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import util from 'util';
 import FormData from 'form-data';
 import path from 'path';
@@ -111,14 +111,27 @@ app.post('/api/transcribe', async (req, res) => {
 
         // Download audio using @distube/ytdl-core
         const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-        const info = await ytdl.getInfo(videoUrl);
+        const info = await ytdl.getInfo(videoUrl, {
+            requestOptions: {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+            }
+        });
         const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
         
         console.log(`✅ Audio format selected: ${audioFormat.qualityLabel || 'audio only'}`);
 
         // Stream audio to file
         await new Promise((resolve, reject) => {
-            const audioStream = ytdl.downloadFromInfo(info, { format: audioFormat });
+            const audioStream = ytdl.downloadFromInfo(info, { 
+                format: audioFormat,
+                requestOptions: {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                }
+            });
             const writeStream = fs.createWriteStream(audioFilePath);
 
             audioStream.on('error', reject);
@@ -138,12 +151,13 @@ app.post('/api/transcribe', async (req, res) => {
 
         // Upload to AssemblyAI
         console.log('📤 Uploading audio to AssemblyAI...');
+        console.log('🔑 API Key:', process.env.ASSEMBLYAI_API_KEY ? `✅ SET (${process.env.ASSEMBLYAI_API_KEY.substring(0, 10)}...)` : '❌ MISSING');
         const formData = new FormData();
         formData.append('file', fs.createReadStream(audioFilePath));
 
         const uploadResponse = await axios.post('https://api.assemblyai.com/v2/upload', formData, {
             headers: {
-                authorization: process.env.VITE_ASSEMBLYAI_API_KEY,
+                authorization: process.env.ASSEMBLYAI_API_KEY,
                 ...formData.getHeaders(),
             },
             maxContentLength: Infinity,
@@ -161,7 +175,7 @@ app.post('/api/transcribe', async (req, res) => {
                 audio_url: upload_url, 
                 language_code: 'en'
             },
-            { headers: { authorization: process.env.VITE_ASSEMBLYAI_API_KEY } }
+            { headers: { authorization: process.env.ASSEMBLYAI_API_KEY } }
         );
 
         const transcriptId = transcriptResponse.data.id;
@@ -176,7 +190,7 @@ app.post('/api/transcribe', async (req, res) => {
         while (!transcriptCompleted && attempts < maxAttempts) {
             const pollResponse = await axios.get(
                 `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
-                { headers: { authorization: process.env.VITE_ASSEMBLYAI_API_KEY } }
+                { headers: { authorization: process.env.ASSEMBLYAI_API_KEY } }
             );
 
             const pollData = pollResponse.data;
@@ -211,6 +225,19 @@ app.post('/api/transcribe', async (req, res) => {
         res.json({ transcript: transcriptData });
     } catch (err) {
         console.error('\n❌ Error in transcribe route:', err.message);
+        
+        // Log full error details
+        if (err.response) {
+            console.error('Status:', err.response.status);
+            console.error('Status Text:', err.response.statusText);
+            console.error('Response data:', JSON.stringify(err.response.data, null, 2));
+            console.error('Response headers:', JSON.stringify(err.response.headers, null, 2));
+        } else if (err.request) {
+            console.error('No response from server:', err.request);
+        } else {
+            console.error('Error details:', err);
+        }
+        
         // Cleanup in case of error
         try {
             if (fs.existsSync(audioFilePath)) {
@@ -219,7 +246,11 @@ app.post('/api/transcribe', async (req, res) => {
         } catch (cleanupErr) {}
 
         // Send detailed error to frontend
-        res.status(500).json({ error: err.message || 'Failed to transcribe audio' });
+        res.status(500).json({ 
+            error: err.message || 'Failed to transcribe audio',
+            details: err.response?.data || null,
+            status: err.response?.status || null
+        });
     }
 });
 
