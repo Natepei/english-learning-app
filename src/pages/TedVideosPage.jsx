@@ -23,7 +23,7 @@ const TedVideosPage = () => {
                 console.log('🎥 YouTube API Key:', youtubeApiKey ? `✅ SET (${youtubeApiKey.substring(0, 10)}...)` : '❌ MISSING');
                 
                 if (!youtubeApiKey) {
-                    throw new Error('YouTube API key not configured. Please set VITE_YOUTUBE_API_KEY in environment.');
+                    throw new Error('YouTube API key not configured. Using fallback videos.');
                 }
                 
                 const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=TED+Talks&type=video&key=${youtubeApiKey}`;
@@ -44,8 +44,50 @@ const TedVideosPage = () => {
                 setSelectedVideoId(data.items[0]?.id.videoId);
                 setLoading(false);
             } catch (err) {
-                console.error('❌ Error fetching videos:', err);
-                setError(err.message);
+                console.warn('⚠️ YouTube API failed, using fallback videos:', err.message);
+                
+                // Fallback: Use hardcoded TED videos
+                const fallbackVideos = [
+                    {
+                        id: { videoId: '5MuIMqhT8DM' },
+                        snippet: {
+                            title: 'The power of introverts',
+                            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/5MuIMqhT8DM/mqdefault.jpg' } }
+                        }
+                    },
+                    {
+                        id: { videoId: 'Z8ji9rUe_kM' },
+                        snippet: {
+                            title: 'Do schools kill creativity?',
+                            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/Z8ji9rUe_kM/mqdefault.jpg' } }
+                        }
+                    },
+                    {
+                        id: { videoId: 'JXeJANDKwDc' },
+                        snippet: {
+                            title: 'Why good leaders make you feel safe',
+                            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/JXeJANDKwDc/mqdefault.jpg' } }
+                        }
+                    },
+                    {
+                        id: { videoId: 'u--IuduAa-c' },
+                        snippet: {
+                            title: 'Your body language shapes who you are',
+                            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/u--IuduAa-c/mqdefault.jpg' } }
+                        }
+                    },
+                    {
+                        id: { videoId: 'x-HPyB4PMfQ' },
+                        snippet: {
+                            title: 'How to speak so that people want to listen',
+                            thumbnails: { medium: { url: 'https://i.ytimg.com/vi/x-HPyB4PMfQ/mqdefault.jpg' } }
+                        }
+                    }
+                ];
+                
+                setVideos(fallbackVideos);
+                setSelectedVideoId(fallbackVideos[0]?.id.videoId);
+                setError('Using cached TED videos (YouTube API quota exceeded). Quota will reset at midnight UTC.');
                 setLoading(false);
             }
         };
