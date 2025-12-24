@@ -109,37 +109,78 @@ app.post('/api/transcribe', async (req, res) => {
             try { fs.unlinkSync(audioFilePath); } catch (e) {}
         }
 
-        // Download audio using @distube/ytdl-core
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-        const info = await ytdl.getInfo(videoUrl, {
-            requestOptions: {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                }
-            }
-        });
-        const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
-        
-        console.log(`✅ Audio format selected: ${audioFormat.qualityLabel || 'audio only'}`);
+        let downloaded = false;
+        let ytdlErr = null;
 
-        // Stream audio to file
-        await new Promise((resolve, reject) => {
-            const audioStream = ytdl.downloadFromInfo(info, { 
-                format: audioFormat,
+        // Try method 1: ytdl-core with headers
+        try {
+            console.log('📥 Trying ytdl-core...');
+            const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            const info = await ytdl.getInfo(videoUrl, {
                 requestOptions: {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                     }
                 }
             });
-            const writeStream = fs.createWriteStream(audioFilePath);
+            const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
+            
+            console.log(`✅ Audio format selected: ${audioFormat.qualityLabel || 'audio only'}`);
 
-            audioStream.on('error', reject);
-            writeStream.on('error', reject);
-            writeStream.on('finish', resolve);
+            // Stream audio to file
+            await new Promise((resolve, reject) => {
+                const audioStream = ytdl.downloadFromInfo(info, { 
+                    format: audioFormat,
+                    requestOptions: {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                        }
+                    }
+                });
+                const writeStream = fs.createWriteStream(audioFilePath);
 
-            audioStream.pipe(writeStream);
-        });
+                audioStream.on('error', reject);
+                writeStream.on('error', reject);
+                writeStream.on('finish', resolve);
+
+                audioStream.pipe(writeStream);
+            });
+            
+            downloaded = true;
+            console.log('✅ Downloaded via ytdl-core');
+        } catch (err) {
+            console.error(`⚠️ ytdl-core failed: ${err.message}`);
+
+            // === BẮT ĐẦU ĐOẠN SỬA ===
+            try {
+                console.log('📥 Trying yt-dlp fallback...');
+                const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                
+                // 1. KHAI BÁO CÁC BIẾN ĐƯỜNG DẪN (Bạn bị thiếu dòng này nên nó báo lỗi)
+                const ffmpegDir = path.join(__dirname, 'bin');
+                const cookiePath = path.join(__dirname, 'cookies.txt'); // <-- ĐÂY LÀ DÒNG QUAN TRỌNG NHẤT
+                
+                // 2. Xử lý đường dẫn cho Windows (thay \ thành /)
+                const safeFfmpegDir = ffmpegDir.replace(/\\/g, '/');
+                const safeCookiePath = cookiePath.replace(/\\/g, '/');
+                const safeAudioPath = audioFilePath.replace(/\\/g, '/');
+
+                // 3. Tạo lệnh chạy (Command)
+                const cmd = `python -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${safeFfmpegDir}" --cookies "${safeCookiePath}" --no-check-certificate -o "${safeAudioPath}" "${videoUrl}"`;
+                
+                console.log('Running yt-dlp command...');
+                // console.log(cmd); // Bỏ comment dòng này nếu muốn xem lệnh đầy đủ
+
+                await execPromise(cmd);
+                
+                downloaded = true;
+                console.log('✅ Downloaded via yt-dlp');
+            } catch (ytdlpErr) {
+                console.error(`⚠️ yt-dlp also failed: ${ytdlpErr.message}`);
+                throw new Error(`All download methods failed. ytdl-core: ${err.message}. yt-dlp: ${ytdlpErr.message}`);
+            }
+            // === KẾT THÚC ĐOẠN SỬA ===
+        }
 
         // Verify file exists
         if (!fs.existsSync(audioFilePath)) {
@@ -231,7 +272,6 @@ app.post('/api/transcribe', async (req, res) => {
             console.error('Status:', err.response.status);
             console.error('Status Text:', err.response.statusText);
             console.error('Response data:', JSON.stringify(err.response.data, null, 2));
-            console.error('Response headers:', JSON.stringify(err.response.headers, null, 2));
         } else if (err.request) {
             console.error('No response from server:', err.request);
         } else {
