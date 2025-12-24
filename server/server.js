@@ -160,9 +160,10 @@ app.post('/api/transcribe', async (req, res) => {
                 
                 // Use yt-dlp Python module to download audio with ffmpeg location
                 const ffmpegDir = path.dirname(ffmpegPath);
-                const cmd = `python -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${audioFilePath}" "${videoUrl}"`;
+                const cmd = `python3 -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${audioFilePath}" "${videoUrl}"`;
                 
                 console.log('Running yt-dlp command...');
+                console.log('Command:', cmd);
                 await execPromise(cmd);
                 
                 downloaded = true;
