@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import { BookOpen, AlertCircle } from 'lucide-react';
+import { getApiUrl } from '../utils/api';
 import './Lessons.css';
 
 const Lessons = () => {
@@ -17,7 +18,7 @@ const Lessons = () => {
     const fetchLessons = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:5000/api/lessons/${courseId}`);
+            const response = await axios.get(getApiUrl(`lessons/${courseId}`));
             setLessons(response.data);
             setError(null);
         } catch (err) {

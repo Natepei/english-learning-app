@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { BookOpen, GraduationCap, BarChart, AlertCircle } from 'lucide-react';
+import { getApiUrl } from '../utils/api';
 import './Courses.css';
 
 const Courses = () => {
@@ -17,7 +18,7 @@ const Courses = () => {
     const fetchCourses = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/courses');
+            const response = await axios.get(getApiUrl('courses'));
             console.log('Courses data:', response.data); // For debugging
             setCourses(response.data);
             setError(null);

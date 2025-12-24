@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl, getBaseUrl } from '../utils/api';
 import './ToeicDashboard.css';
 
 const ToeicDashboard = () => {
@@ -17,7 +18,7 @@ const ToeicDashboard = () => {
     const fetchBooks = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/books');
+            const response = await axios.get(getApiUrl('books'));
             
             // Backend now filters based on role, but we can double check on frontend
             // to ensure no drafts leak if backend logic changes.
@@ -34,7 +35,7 @@ const ToeicDashboard = () => {
     const handleSelectBook = async (book) => {
         setSelectedBook(book);
         try {
-            const response = await axios.get(`http://localhost:5000/api/books/${book._id}/exams`);
+            const response = await axios.get(getApiUrl(`books/${book._id}/exams`));
             setExams(response.data);
         } catch (error) {
             console.error('❌ Error fetching exams:', error);
@@ -82,7 +83,7 @@ const ToeicDashboard = () => {
                                 >
                                     <div className="book-cover">
                                         {book.imageUrl ? (
-                                            <img src={`http://localhost:5000${book.imageUrl}`} alt={book.title} />
+                                            <img src={`${getBaseUrl()}${book.imageUrl}`} alt={book.title} />
                                         ) : (
                                             <div className="no-cover">TOEIC</div>
                                         )}

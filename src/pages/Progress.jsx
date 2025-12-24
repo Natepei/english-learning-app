@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import { getApiUrl } from '../utils/api';
 import './Progress.css';
 
 const ProgressPage = () => {
@@ -20,7 +21,7 @@ const ProgressPage = () => {
             console.log('Fetching progress for user ID:', userId);
             console.log(token);
             const response = await axios.get(
-                `http://localhost:5000/api/progress/${userId}`,
+                getApiUrl(`progress/${userId}`),
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

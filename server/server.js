@@ -66,7 +66,7 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:3000',
     'https://english-learning-app-theta.vercel.app',
-    'https://english-learning-app-server.onrender.com'
+    'https://english-learning-app-w7lk.onrender.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

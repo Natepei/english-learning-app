@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import ReactQuill from 'react-quill';
+import { getApiUrl } from '../utils/api';
 import 'react-quill/dist/quill.snow.css';
 import './CreateBlog.css';
 
@@ -41,7 +42,7 @@ const CreateBlog = () => {
 
     const fetchCourses = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/courses');
+            const response = await axios.get(getApiUrl('courses'));
             setCourses(response.data);
         } catch (error) {
             console.error('Error fetching courses:', error);
@@ -50,7 +51,7 @@ const CreateBlog = () => {
 
     const fetchLessons = async (courseId) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/lessons?courseId=${courseId}`);
+            const response = await axios.get(getApiUrl(`lessons?courseId=${courseId}`));
             setLessons(response.data);
         } catch (error) {
             console.error('Error fetching lessons:', error);
@@ -86,7 +87,7 @@ const CreateBlog = () => {
             const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
             await axios.post(
-                'http://localhost:5000/api/blogs',
+                getApiUrl('blogs'),
                 {
                     ...formData,
                     tags: tagsArray

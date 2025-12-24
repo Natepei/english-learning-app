@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { getApiUrl } from '../utils/api';
 import './ToeicHistory.css';
 
 const ToeicHistory = () => {
@@ -26,7 +27,7 @@ const ToeicHistory = () => {
         try {
             setLoading(true);
             const response = await axios.get(
-                `http://localhost:5000/api/submissions/user/${user._id}?status=completed`,
+                getApiUrl(`submissions/user/${user._id}?status=completed`),
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setSubmissions(response.data);
@@ -40,7 +41,7 @@ const ToeicHistory = () => {
     const fetchStats = async () => {
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/submissions/stats/user/${user._id}`,
+                getApiUrl(`submissions/stats/user/${user._id}`),
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setStats(response.data);
@@ -56,7 +57,7 @@ const ToeicHistory = () => {
 
         try {
             await axios.delete(
-                `http://localhost:5000/api/submissions/${submissionId}`,
+                getApiUrl(`submissions/${submissionId}`),
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             alert('✅ Xóa bài làm thành công');

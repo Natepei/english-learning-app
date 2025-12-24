@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl, getBaseUrl } from '../utils/api';
 import './ToeicReview.css';
 
 const ToeicReview = () => {
@@ -18,7 +19,7 @@ const ToeicReview = () => {
 
                 // Fetch submission with answers
                 const subRes = await axios.get(
-                    `http://localhost:5000/api/submissions/${submissionId}`,
+                    getApiUrl(`submissions/${submissionId}`),
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 setSubmission(subRes.data);
@@ -29,7 +30,7 @@ const ToeicReview = () => {
                     : subRes.data.examId;
 
                 const qRes = await axios.get(
-                    `http://localhost:5000/api/questions/exam/${examId}`,
+                    getApiUrl(`questions/exam/${examId}`),
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
 
@@ -101,14 +102,14 @@ const ToeicReview = () => {
                                 {[1, 2, 3, 4].includes(question.part) && question.audioUrl && (
                                     <div className="audio-section">
                                         <p className="audio-label">🔊 Audio:</p>
-                                        <audio controls src={`http://localhost:5000${question.audioUrl}`} />
+                                        <audio controls src={`${getBaseUrl()}${question.audioUrl}`} />
                                     </div>
                                 )}
 
                                 {/* Image (Part 1) */}
                                 {question.part === 1 && question.imageUrl && (
                                     <div className="image-section">
-                                        <img src={`http://localhost:5000${question.imageUrl}`} alt={`Q${question.questionNumber}`} />
+                                        <img src={`${getBaseUrl()}${question.imageUrl}`} alt={`Q${question.questionNumber}`} />
                                     </div>
                                 )}
 

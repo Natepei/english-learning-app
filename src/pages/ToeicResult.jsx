@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl } from '../utils/api';
 import './ToeicResult.css';
 
 const ToeicResult = () => {
@@ -18,7 +19,7 @@ const ToeicResult = () => {
         try {
             setLoading(true);
             const response = await axios.get(
-                `http://localhost:5000/api/submissions/${submissionId}`,
+                getApiUrl(`submissions/${submissionId}`),
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setSubmission(response.data);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { getApiUrl } from '../utils/api';
 import './ToeicExamDetail.css';
 
 const ToeicExamDetail = () => {
@@ -20,7 +21,7 @@ const ToeicExamDetail = () => {
     const fetchExamDetails = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:5000/api/exams/${examId}`);
+            const response = await axios.get(getApiUrl(`exams/${examId}`));
             setExam(response.data);
         } catch (error) {
             console.error('Error fetching exam:', error);
@@ -39,7 +40,7 @@ const ToeicExamDetail = () => {
 
         try {
             const response = await axios.post(
-                'http://localhost:5000/api/submissions/start',
+                getApiUrl('submissions/start'),
                 { examId, mode },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

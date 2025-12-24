@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { getApiUrl } from '../utils/api';
 import './BlogPost.css';
 
 // CommentItem with collapse magic
@@ -161,7 +162,7 @@ const BlogPost = () => {
                 headers: { Authorization: `Bearer ${user.token}` }
             } : {};
 
-            const response = await axios.get(`http://localhost:5000/api/blogs/${id}`, config);
+            const response = await axios.get(getApiUrl(`blogs/${id}`), config);
             setBlog(response.data);
             setLikesCount(response.data.likes?.length || 0);
             setIsLiked(response.data.likes?.includes(user?._id));
@@ -174,7 +175,7 @@ const BlogPost = () => {
 
     const fetchComments = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/blogs/${id}/comments`);
+            const response = await axios.get(getApiUrl(`blogs/${id}/comments`));
             setComments(response.data);
             // Reset expands on refetch—keeps it fresh (swap for localStorage if sticky needed)
             setExpanded({});
@@ -192,7 +193,7 @@ const BlogPost = () => {
 
         try {
             const response = await axios.post(
-                `http://localhost:5000/api/blogs/${id}/like`,
+                getApiUrl(`blogs/${id}/like`),
                 {},
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
@@ -215,7 +216,7 @@ const BlogPost = () => {
 
         try {
             await axios.post(
-                `http://localhost:5000/api/blogs/${id}/comments`,
+                getApiUrl(`blogs/${id}/comments`),
                 { content: newComment },
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
@@ -239,7 +240,7 @@ const BlogPost = () => {
 
         try {
             await axios.post(
-                `http://localhost:5000/api/blogs/${id}/comments`,
+                getApiUrl(`blogs/${id}/comments`),
                 { 
                     content: content,
                     parentComment: parentId 
@@ -260,7 +261,7 @@ const BlogPost = () => {
 
         try {
             await axios.delete(
-                `http://localhost:5000/api/blogs/${id}/comments/${commentId}`,
+                getApiUrl(`blogs/${id}/comments/${commentId}`),
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
             fetchComments();  // Refetch cleans tree

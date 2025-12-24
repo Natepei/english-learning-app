@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { getApiUrl } from '../utils/api';
 import './BlogPage.css';
 
 const stripHtml = (html) => {
@@ -43,7 +44,7 @@ const BlogPage = () => {
                 params.search = searchQuery;
             }
 
-            const response = await axios.get('http://localhost:5000/api/blogs', { params });
+            const response = await axios.get(getApiUrl('blogs'), { params });
             setBlogs(response.data);
         } catch (error) {
             console.error('Error fetching blogs:', error);

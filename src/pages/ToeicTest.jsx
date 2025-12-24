@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl, getBaseUrl } from '../utils/api';
 import './ToeicTest.css';
 
 const ToeicTest = () => {
@@ -23,7 +24,7 @@ const ToeicTest = () => {
   useEffect(() => {
     const loadTest = async () => {
       try {
-        const subRes = await axios.get(`http://localhost:5000/api/submissions/${submissionId}`, {
+        const subRes = await axios.get(getApiUrl(`submissions/${submissionId}`), {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -33,10 +34,10 @@ const ToeicTest = () => {
         const examId = sub.examId?._id || sub.examId;
         
         const [qRes, pRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/questions/exam/${examId}`, {
+          axios.get(getApiUrl(`questions/exam/${examId}`), {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get(`http://localhost:5000/api/passages/exam/${examId}`, {
+          axios.get(getApiUrl(`passages/exam/${examId}`), {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
@@ -98,7 +99,7 @@ const ToeicTest = () => {
     try {
       const question = questions.find(q => q.questionNumber === questionNumber);
       await axios.put(
-        `http://localhost:5000/api/submissions/${submissionId}/answer`,
+        getApiUrl(`submissions/${submissionId}/answer`),
         {
           questionNumber,
           part: question?.part,
@@ -133,7 +134,7 @@ const ToeicTest = () => {
     setSubmitting(true);
     try {
       await axios.put(
-        `http://localhost:5000/api/submissions/${submissionId}/submit`,
+        getApiUrl(`submissions/${submissionId}/submit`),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -174,7 +175,7 @@ const ToeicTest = () => {
               <div className="audio-container">
                 <audio 
                   controls 
-                  src={`http://localhost:5000${question.audioUrl}`}
+                  src={`${getBaseUrl()}${question.audioUrl}`}
                   controlsList="nodownload"
                 >
                   Your browser does not support audio.
@@ -186,7 +187,7 @@ const ToeicTest = () => {
             {part === 1 && question.imageUrl && (
               <div className="question-image-container">
                 <img 
-                  src={`http://localhost:5000${question.imageUrl}`} 
+                  src={`${getBaseUrl()}${question.imageUrl}`} 
                   alt={`Question ${question.questionNumber}`}
                 />
               </div>

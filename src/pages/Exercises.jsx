@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import { getApiUrl } from '../utils/api';
 import './Exercises.css';
 
 const Exercises = () => {
@@ -18,7 +19,7 @@ const Exercises = () => {
         try {
             setLoading(true);
             // console.log('Fetching exercises for lessonId:', lessonId); // Debug log
-            const response = await axios.get(`http://localhost:5000/api/exercises/${lessonId}`);
+            const response = await axios.get(getApiUrl(`exercises/${lessonId}`));
             // console.log('Received exercises data:', response.data); // Debug log
 
             // Verify data structure
@@ -41,7 +42,7 @@ const Exercises = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                'http://localhost:5000/api/progress',
+                getApiUrl('progress'),
                 {
                     lessonId,
                     exerciseResults: results.map((result) => ({
