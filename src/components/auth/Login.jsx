@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import { getApiUrl } from '../../utils/api';
 import './Auth.css';
 
 function Login() {
@@ -16,7 +17,7 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+            const response = await axios.post(getApiUrl('/auth/login'), formData);
             const userData = response.data;
 
             // Lưu thông tin người dùng vào context

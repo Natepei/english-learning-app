@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { getApiUrl } from '../utils/api';
 import './TedVideosPage.css';
 
 const TedVideosPage = () => {
@@ -45,7 +46,7 @@ const TedVideosPage = () => {
         setTranscript(null);
 
         try {
-            const response = await fetch('http://localhost:5000/api/transcribe', {
+            const response = await fetch(getApiUrl('/transcribe'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl } from '../../utils/api';
 import './Auth.css';
 
 function Register() {
@@ -20,7 +21,7 @@ function Register() {
             return;
         }
         try {
-            await axios.post('http://localhost:5000/api/auth/register', formData);
+            await axios.post(getApiUrl('/auth/register'), formData);
             navigate('/login');
         } catch (err) {
             setError(err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại');
