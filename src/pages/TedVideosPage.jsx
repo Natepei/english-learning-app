@@ -20,24 +20,38 @@ const TedVideosPage = () => {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
-                const response = await fetch(
-                    `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=TED+Talks&type=video&key=${youtubeApiKey}`
-                );
-                if (!response.ok) {
-                    throw new Error('Failed to fetch videos');
+                console.log('🎥 YouTube API Key:', youtubeApiKey ? `✅ SET (${youtubeApiKey.substring(0, 10)}...)` : '❌ MISSING');
+                
+                if (!youtubeApiKey) {
+                    throw new Error('YouTube API key not configured. Please set VITE_YOUTUBE_API_KEY in environment.');
                 }
+                
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=TED+Talks&type=video&key=${youtubeApiKey}`;
+                console.log('📡 Fetching from:', url.substring(0, 80) + '...');
+                
+                const response = await fetch(url);
+                console.log('📊 Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('❌ YouTube API Error:', errorData);
+                    throw new Error(`YouTube API error (${response.status}): ${errorData.error?.message || 'Unknown error'}`);
+                }
+                
                 const data = await response.json();
+                console.log('✅ Fetched videos:', data.items?.length || 0);
                 setVideos(data.items);
                 setSelectedVideoId(data.items[0]?.id.videoId);
                 setLoading(false);
             } catch (err) {
+                console.error('❌ Error fetching videos:', err);
                 setError(err.message);
                 setLoading(false);
             }
         };
 
         fetchVideos();
-    }, []);
+    }, [youtubeApiKey]);
 
     const handleTranscribe = async () => {
         if (!selectedVideoId) return;
@@ -46,7 +60,11 @@ const TedVideosPage = () => {
         setTranscript(null);
 
         try {
-            const response = await fetch(getApiUrl('transcribe'), {
+            console.log('🎬 Starting transcribe for video:', selectedVideoId);
+            const url = getApiUrl('transcribe');
+            console.log('📤 Calling endpoint:', url);
+            
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,14 +72,19 @@ const TedVideosPage = () => {
                 body: JSON.stringify({ videoId: selectedVideoId }),
             });
 
+            console.log('📊 Response status:', response.status);
+            
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to transcribe audio');
+                console.error('❌ Transcribe error:', errorData);
+                throw new Error(errorData.error || `Transcribe failed (${response.status})`);
             }
 
             const data = await response.json();
+            console.log('✅ Transcription completed');
             setTranscript(data.transcript); 
         } catch (err) {
+            console.error('❌ Transcribe error:', err);
             setError(`Error: ${err.message}`);
         } finally {
             setIsTranscribing(false);
