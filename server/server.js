@@ -35,7 +35,7 @@ import { errorHandler } from './middleware/error.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 // Create a Promise-based exec function
 const execPromise = util.promisify(exec);

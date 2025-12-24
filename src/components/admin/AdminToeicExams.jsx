@@ -114,17 +114,35 @@ const AdminToeicExams = () => {
     };
 
     const handleDelete = async (examId) => {
-        if (!window.confirm('Bạn có chắc chắn muốn xóa đề thi này?')) return;
+        const deleteChoice = window.confirm('⚠️ Chọn:\n\n✓ = Xóa lịch sử trước rồi xóa exam\n✗ = Hủy');
+        if (!deleteChoice) return;
 
         try {
+            setLoading(true);
+            
+            // First, delete all submissions for this exam
+            console.log('🗑️ Deleting exam submissions...');
+            const submissionResponse = await axios.delete(
+                `http://localhost:5000/api/submissions/exam/${examId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const deletedCount = submissionResponse.data?.deletedCount || 0;
+            console.log(`✅ Deleted ${deletedCount} submissions`);
+
+            // Then delete the exam itself
+            console.log('🗑️ Deleting exam...');
             await axios.delete(`http://localhost:5000/api/exams/${examId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Xóa đề thi thành công!');
+            
+            alert(`✅ Xóa thành công!\n\n📊 Lịch sử: ${deletedCount} bài làm\n📝 Đề thi: 1 exam`);
             fetchBookAndExams();
         } catch (error) {
             console.error('Error deleting exam:', error);
-            alert('Lỗi: ' + (error.response?.data?.message || 'Không thể xóa đề thi'));
+            const errorMessage = error.response?.data?.message || 'Không thể xóa đề thi';
+            alert(`❌ Lỗi: ${errorMessage}`);
+        } finally {
+            setLoading(false);
         }
     };
 

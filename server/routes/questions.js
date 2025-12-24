@@ -550,6 +550,30 @@ router.post('/create', protect, admin, upload.fields([
             });
         }
 
+        // ===== CHECK TOTAL QUESTIONS LIMIT (200) =====
+        const existingCount = await Promise.all([
+            Part1Question.countDocuments({ examId }),
+            Part2Question.countDocuments({ examId }),
+            Part3Question.countDocuments({ examId }),
+            Part4Question.countDocuments({ examId }),
+            Part5Question.countDocuments({ examId }),
+            Part6Question.countDocuments({ examId }),
+            Part7Question.countDocuments({ examId })
+        ]);
+        
+        const totalExisting = existingCount.reduce((a, b) => a + b, 0);
+        const maxQuestions = 200;
+
+        if (totalExisting >= maxQuestions) {
+            return res.status(400).json({ 
+                message: `❌ Không thể thêm câu hỏi! Đề thi đã đạt giới hạn ${maxQuestions} câu hỏi tối đa.`,
+                details: {
+                    existing: totalExisting,
+                    max: maxQuestions
+                }
+            });
+        }
+
         const partNum = parseInt(part);
         if (partNum < 1 || partNum > 7) {
             return res.status(400).json({ message: 'Invalid part number (1-7)' });

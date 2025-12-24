@@ -1,5 +1,6 @@
 import { Book } from '../models/Book.js';
 import { Exam } from '../models/Exam.js';
+import { Submission } from '../models/Submission.js';
 import fs from 'fs';
 
 // @desc    Get all books
@@ -133,11 +134,32 @@ export const deleteBook = async (req, res) => {
             return res.status(404).json({ message: 'Không tìm thấy sách' });
         }
 
-        const activeExams = await Exam.countDocuments({ bookId: book._id, isActive: true });
+        // Check for exams associated with this book
+        const exams = await Exam.find({ bookId: book._id, isActive: true });
+        const examIds = exams.map(e => e._id);
 
-        if (activeExams > 0) {
+        // Check if there are any submissions for these exams
+        if (examIds.length > 0) {
+            const submissionCount = await Submission.countDocuments({ 
+                examId: { $in: examIds } 
+            });
+
+            if (submissionCount > 0) {
+                return res.status(400).json({ 
+                    message: `Không thể xóa sách này. Hiện tại có ${examIds.length} đề thi với tổng ${submissionCount} bài làm từ người dùng. Vui lòng xóa tất cả bài làm trước hoặc xóa các đề thi.`,
+                    details: {
+                        examCount: examIds.length,
+                        submissionCount: submissionCount
+                    }
+                });
+            }
+
+            // Check if there are active exams
             return res.status(400).json({ 
-                message: 'Không thể xóa sách khi còn đề thi đang hoạt động' 
+                message: `Không thể xóa sách khi còn ${examIds.length} đề thi đang hoạt động. Vui lòng xóa các đề thi trước.`,
+                details: {
+                    examCount: examIds.length
+                }
             });
         }
 

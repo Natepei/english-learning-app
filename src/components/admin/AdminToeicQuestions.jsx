@@ -87,12 +87,13 @@ const AdminToeicQuestions = () => {
             await axios.delete(`http://localhost:5000/api/questions/${questionId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Xóa câu hỏi thành công!');
+            alert('✅ Xóa câu hỏi thành công!');
             fetchQuestions();
             fetchExamData();
         } catch (error) {
             console.error('Error deleting question:', error);
-            alert('Lỗi: ' + (error.response?.data?.message || 'Không thể xóa câu hỏi'));
+            const errorMessage = error.response?.data?.message || 'Không thể xóa câu hỏi';
+            alert(`❌ Lỗi: ${errorMessage}`);
         }
     };
 

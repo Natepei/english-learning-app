@@ -161,11 +161,12 @@ const AdminBooks = () => {
             await axios.delete(`http://localhost:5000/api/books/${bookId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Xóa sách thành công!');
+            alert('✅ Xóa sách thành công!');
             fetchBooks();
         } catch (error) {
             console.error('Error deleting book:', error);
-            alert('Lỗi: ' + (error.response?.data?.message || 'Không thể xóa sách'));
+            const errorMessage = error.response?.data?.message || 'Không thể xóa sách';
+            alert(`❌ Lỗi: ${errorMessage}`);
         }
     };
 

@@ -134,7 +134,10 @@ export const deleteExam = async (req, res) => {
 
         if (submissionCount > 0) {
             return res.status(400).json({ 
-                message: 'Không thể xóa đề thi đã có người làm' 
+                message: `Không thể xóa đề thi này. Hiện tại có ${submissionCount} bài làm từ người dùng. Vui lòng xóa tất cả bài làm liên quan trước khi xóa đề thi.`,
+                details: {
+                    submissionCount: submissionCount
+                }
             });
         }
 

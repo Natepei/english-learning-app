@@ -8,6 +8,7 @@ import {
     getExamSubmissions,
     getReview,
     deleteSubmission,
+    deleteExamSubmissions,
     getUserStats
 } from '../controllers/submissionController.js';
 import { protect, admin } from '../middleware/auth.js';
@@ -53,6 +54,11 @@ router.get('/:id/review', protect, getReview);
 // @desc    Delete a submission
 // @access  Private
 router.delete('/:id', protect, deleteSubmission);
+
+// @route   DELETE /api/submissions/exam/:examId
+// @desc    Delete all submissions for an exam (Admin only)
+// @access  Private/Admin
+router.delete('/exam/:examId', protect, admin, deleteExamSubmissions);
 
 // @route   GET /api/submissions/stats/user/:userId
 // @desc    Get user statistics

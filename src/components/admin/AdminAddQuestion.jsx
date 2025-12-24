@@ -5,6 +5,8 @@ import './AdminAddQuestion.css';
 const AdminAddQuestion = ({ examId, part, onClose, onSuccess }) => {
     const token = localStorage.getItem('token');
     const [saving, setSaving] = useState(false);
+    const [totalQuestions, setTotalQuestions] = useState(0);
+    const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         questionNumber: '',
         questionContent: '',
@@ -29,6 +31,24 @@ const AdminAddQuestion = ({ examId, part, onClose, onSuccess }) => {
         6: { name: 'Part 6 - Text Completion', hasAudio: false, hasImage: false },
         7: { name: 'Part 7 - Reading Comprehension', hasAudio: false, hasImage: false }
     };
+
+    // Fetch exam overview to check question count
+    React.useEffect(() => {
+        const fetchExamOverview = async () => {
+            try {
+                const response = await axios.get(`http://localhost:5000/api/exams/${examId}/questions-overview`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setTotalQuestions(response.data.totalQuestions || 0);
+            } catch (error) {
+                console.error('Error fetching exam overview:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchExamOverview();
+    }, [examId, token]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -118,7 +138,13 @@ const AdminAddQuestion = ({ examId, part, onClose, onSuccess }) => {
         } catch (error) {
             console.error('❌ Error adding question:', error);
             console.error('Response:', error.response?.data);
-            alert('❌ Lỗi: ' + (error.response?.data?.message || 'Không thể thêm câu hỏi'));
+            
+            // Handle 400 error for exceeding limit
+            if (error.response?.status === 400 && error.response?.data?.details?.max) {
+                alert(`❌ ${error.response.data.message}`);
+            } else {
+                alert('❌ Lỗi: ' + (error.response?.data?.message || 'Không thể thêm câu hỏi'));
+            }
         } finally {
             setSaving(false);
         }
@@ -131,6 +157,31 @@ const AdminAddQuestion = ({ examId, part, onClose, onSuccess }) => {
                     <h2>➕ Thêm Câu Hỏi Mới</h2>
                     <p className="subtitle">{partInfo[part].name}</p>
                 </div>
+
+                {/* Question Count Warning - Disabled State */}
+                {totalQuestions >= 200 && (
+                    <div style={{
+                        background: '#FEE2E2',
+                        borderLeft: '4px solid #DC2626',
+                        padding: '15px',
+                        borderRadius: '6px',
+                        marginBottom: '20px'
+                    }}>
+                        <p style={{ 
+                            margin: '0 0 8px 0',
+                            fontWeight: '600',
+                            color: '#DC2626'
+                        }}>
+                            ❌ Đã đạt giới hạn tối đa
+                        </p>
+                        <p style={{ 
+                            margin: '0',
+                            color: '#991B1B'
+                        }}>
+                            Đề thi này đã có <strong>{totalQuestions}/200</strong> câu hỏi. Không thể thêm câu hỏi mới. Vui lòng xóa một số câu hỏi cũ trước.
+                        </p>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit}>
                     {/* Question Number */}
@@ -283,7 +334,8 @@ const AdminAddQuestion = ({ examId, part, onClose, onSuccess }) => {
                         <button 
                             type="submit" 
                             className="btn-primary"
-                            disabled={saving}
+                            disabled={saving || totalQuestions >= 200}
+                            title={totalQuestions >= 200 ? 'Đã đạt giới hạn 200 câu hỏi' : ''}
                         >
                             {saving ? '⏳ Đang lưu...' : '➕ Thêm Câu Hỏi'}
                         </button>

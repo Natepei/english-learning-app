@@ -395,3 +395,23 @@ export const getUserStats = async (req, res) => {
         res.status(500).json({ message: 'Lỗi khi lấy thống kê' });
     }
 };
+
+// @desc    Delete all submissions for an exam (Admin only)
+// @access  Private/Admin
+export const deleteExamSubmissions = async (req, res) => {
+    try {
+        const examId = req.params.examId;
+
+        // Find and delete all submissions for this exam
+        const result = await Submission.deleteMany({ examId });
+
+        res.json({ 
+            message: `Xóa ${result.deletedCount} bài làm thành công`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error('Error deleting exam submissions:', error);
+        res.status(500).json({ message: 'Lỗi khi xóa bài làm' });
+    }
+};
+

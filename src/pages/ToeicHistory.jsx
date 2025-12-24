@@ -49,6 +49,25 @@ const ToeicHistory = () => {
         }
     };
 
+    const handleDeleteSubmission = async (submissionId) => {
+        if (!window.confirm('❌ Xóa bài làm này khỏi lịch sử?\n\nHành động này không thể hoàn tác!')) {
+            return;
+        }
+
+        try {
+            await axios.delete(
+                `http://localhost:5000/api/submissions/${submissionId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            alert('✅ Xóa bài làm thành công');
+            fetchHistory();
+            fetchStats();
+        } catch (error) {
+            console.error('Error deleting submission:', error);
+            alert(`❌ Lỗi: ${error.response?.data?.message || 'Không thể xóa bài làm'}`);
+        }
+    };
+
     const getScoreColor = (score) => {
         if (score >= 850) return '#10B981';
         if (score >= 700) return '#3B82F6';
@@ -257,6 +276,13 @@ const ToeicHistory = () => {
                                         onClick={() => navigate(`/toeic/review/${sub._id}`)}
                                     >
                                         📋 Xem Đáp Án
+                                    </button>
+                                    <button 
+                                        className="btn-delete"
+                                        onClick={() => handleDeleteSubmission(sub._id)}
+                                        style={{ background: '#EF4444', color: 'white' }}
+                                    >
+                                        🗑️ Xóa
                                     </button>
                                 </div>
                             </div>

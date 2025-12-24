@@ -3,6 +3,7 @@ import xlsx from 'xlsx';
 import fs from 'fs';
 import mongoose from 'mongoose';
 import { 
+    Question,
     Part1Question, 
     Part2Question, 
     Part3Question, 
@@ -427,10 +428,41 @@ export const bulkUploadQuestions = async (req, res) => {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = xlsx.utils.sheet_to_json(sheet, { blankrows: false, defval: '' });
 
+        console.log(`\n📋 Raw request data:`);
+        console.log(`   req.body:`, req.body);
+        console.log(`   req.query:`, req.query);
+
         const examId = req.body.examId || req.query.examId;
+        console.log(`   Extracted examId: ${examId}`);
+        
         if (!examId || !mongoose.Types.ObjectId.isValid(examId)) {
             throw new Error('Invalid or missing examId');
         }
+
+        // ===== VALIDATION: Check current question count =====
+        const currentQuestionCount = await Question.countDocuments({ examId });
+        const newQuestionsCount = data.length;
+        const totalWillBe = currentQuestionCount + newQuestionsCount;
+        
+        console.log(`\n📊 Question Count Check:`);
+        console.log(`   Exam ID: ${examId}`);
+        console.log(`   Current questions: ${currentQuestionCount}`);
+        console.log(`   New questions from Excel: ${newQuestionsCount}`);
+        console.log(`   Total will be: ${totalWillBe}`);
+        
+        const MAX_QUESTIONS = 200;
+        if (totalWillBe > MAX_QUESTIONS) {
+            console.log(`   ❌ BLOCKED: Total ${totalWillBe} exceeds limit ${MAX_QUESTIONS}`);
+            fs.unlinkSync(excelFile.path);
+            return res.status(400).json({ 
+                message: `Không thể thêm câu hỏi. Hiện tại đã có ${currentQuestionCount} câu, sắp thêm ${newQuestionsCount} câu, tổng sẽ là ${totalWillBe} câu (vượt quá giới hạn ${MAX_QUESTIONS} câu)`,
+                currentCount: currentQuestionCount,
+                newCount: newQuestionsCount,
+                totalWillBe: totalWillBe,
+                maxAllowed: MAX_QUESTIONS
+            });
+        }
+        console.log(`   ✅ OK: Within limit`);
 
         const audioMap = new Map(req.files.audio ? req.files.audio.map(file => [file.originalname.toLowerCase(), `/uploads/audio/${file.filename}`]) : []);
         const imageMap = new Map(req.files.image ? req.files.image.map(file => [file.originalname.toLowerCase(), `/uploads/images/${file.filename}`]) : []);
