@@ -159,11 +159,13 @@ app.post('/api/transcribe', async (req, res) => {
                 const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
                 
                 // Use yt-dlp Python module to download audio with ffmpeg location
-                const ffmpegDir = path.dirname(ffmpegPath);
-                const cmd = `python3 -m yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${audioFilePath}" "${videoUrl}"`;
+                const ffmpegDir = path.dirname(ffmpegPath).replace(/\\/g, '/');  // Convert backslashes to forward slashes
+                const normalizedAudioPath = audioFilePath.replace(/\\/g, '/');   // Normalize path for command
+                const cmd = `yt-dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
                 
                 console.log('Running yt-dlp command...');
-                console.log('Command:', cmd);
+                console.log('FFmpeg location:', ffmpegDir);
+                console.log('Output path:', normalizedAudioPath);
                 await execPromise(cmd);
                 
                 downloaded = true;
