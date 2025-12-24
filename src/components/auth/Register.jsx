@@ -13,6 +13,7 @@ function Register() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (formData.password !== formData.confirmPassword) {
@@ -20,7 +21,7 @@ function Register() {
             return;
         }
         try {
-            await axios.post('http://localhost:5000/api/auth/register', formData);
+            await axios.post(`${API_URL}/auth/register`, formData);
             navigate('/login');
         } catch (err) {
             setError(err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại');
