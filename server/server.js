@@ -158,31 +158,23 @@ app.post('/api/transcribe', async (req, res) => {
                 console.log('📥 Trying yt-dlp fallback...');
                 const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
                 
-                // Use yt-dlp Python module to download audio with ffmpeg location
-                const ffmpegDir = path.dirname(ffmpegPath).replace(/\\/g, '/');  // Convert backslashes to forward slashes
-                const normalizedAudioPath = audioFilePath.replace(/\\/g, '/');   // Normalize path for command
-                
-                // Try with 'py' command (Windows Python launcher) first, then fall back to 'python'
-                // Download best audio format available - yt-dlp will select format 251 (WebM Opus audio)
-                // AssemblyAI can transcode this format, so no need for ffmpeg conversion
-                let cmd = `py -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --no-check-certificate -o "${normalizedAudioPath}" "${videoUrl}"`;
-                
+                // Use yt-dlp to download raw audio (WebM Opus format 251)
+                // AssemblyAI can handle WebM, so no ffmpeg conversion needed
+                const safeAudioPath = audioFilePath.replace(/\\/g, '/');
+
                 console.log('Running yt-dlp command...');
-                console.log('Output path:', normalizedAudioPath);
+                console.log('Output path:', safeAudioPath);
+
+                // yt-dlp with JavaScript runtime for YouTube challenge solving
+                const cmd = `python -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --no-check-certificate -o "${safeAudioPath}" "${videoUrl}"`;
                 
-                try {
-                    await execPromise(cmd);
-                } catch (pyErr) {
-                    console.warn('⚠️ "py" command failed, trying "python"...');
-                    cmd = `python -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --no-check-certificate -o "${normalizedAudioPath}" "${videoUrl}"`;
-                    await execPromise(cmd);
-                }
+                await execPromise(cmd);
                 
                 downloaded = true;
                 console.log('✅ Downloaded via yt-dlp');
             } catch (ytdlpErr) {
-                console.warn('⚠️ yt-dlp also failed:', ytdlpErr.message);
-                throw new Error(`All download methods failed. ytdl-core: ${err.message}. yt-dlp: ${ytdlpErr.message}`);
+                console.error(`⚠️ yt-dlp failed: ${ytdlpErr.message}`);
+                throw new Error(`Download failed. ytdl-core: ${err.message}. yt-dlp: ${ytdlpErr.message}`);
             }
         }
 
