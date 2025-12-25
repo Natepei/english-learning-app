@@ -163,8 +163,9 @@ app.post('/api/transcribe', async (req, res) => {
                 const normalizedAudioPath = audioFilePath.replace(/\\/g, '/');   // Normalize path for command
                 
                 // Try with 'py' command (Windows Python launcher) first, then fall back to 'python'
-                // Download best audio format available without conversion to skip ffmpeg issues
-                let cmd = `py -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --audio-format mp3 --audio-quality 192K --no-check-certificate -o "${normalizedAudioPath}" "${videoUrl}"`;
+                // Download best audio format available - yt-dlp will select format 251 (WebM Opus audio)
+                // AssemblyAI can transcode this format, so no need for ffmpeg conversion
+                let cmd = `py -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --no-check-certificate -o "${normalizedAudioPath}" "${videoUrl}"`;
                 
                 console.log('Running yt-dlp command...');
                 console.log('Output path:', normalizedAudioPath);
@@ -173,7 +174,7 @@ app.post('/api/transcribe', async (req, res) => {
                     await execPromise(cmd);
                 } catch (pyErr) {
                     console.warn('⚠️ "py" command failed, trying "python"...');
-                    cmd = `python -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --audio-format mp3 --audio-quality 192K --no-check-certificate -o "${normalizedAudioPath}" "${videoUrl}"`;
+                    cmd = `python -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --no-check-certificate -o "${normalizedAudioPath}" "${videoUrl}"`;
                     await execPromise(cmd);
                 }
                 
