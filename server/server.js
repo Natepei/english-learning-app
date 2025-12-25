@@ -163,8 +163,8 @@ app.post('/api/transcribe', async (req, res) => {
                 const normalizedAudioPath = audioFilePath.replace(/\\/g, '/');   // Normalize path for command
                 
                 // Try with 'py' command (Windows Python launcher) first, then fall back to 'python'
-                // Added --js-runtimes node to fix "No supported JavaScript runtime" error
-                let cmd = `py -m yt_dlp --js-runtimes node -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
+                // Added --js-runtimes node and --remote-components ejs:github for YouTube challenge solving
+                let cmd = `py -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --no-check-certificate --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
                 
                 console.log('Running yt-dlp command...');
                 console.log('FFmpeg location:', ffmpegDir);
@@ -174,7 +174,7 @@ app.post('/api/transcribe', async (req, res) => {
                     await execPromise(cmd);
                 } catch (pyErr) {
                     console.warn('⚠️ "py" command failed, trying "python"...');
-                    cmd = `python -m yt_dlp --js-runtimes node -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
+                    cmd = `python -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio/best" -x --audio-format mp3 --audio-quality 192K --no-check-certificate --ffmpeg-location "${ffmpegDir}" -o "${normalizedAudioPath}" "${videoUrl}"`;
                     await execPromise(cmd);
                 }
                 
