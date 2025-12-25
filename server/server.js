@@ -48,8 +48,6 @@ const ffmpegPath = ffmpeg.replace('app.asar', 'app.asar.unpacked');
 console.log('FFmpeg path:', ffmpegPath);
 
 try {
-    // We use quotes around path in case of spaces
-    // execSync(`"${ffmpegPath}" -version`); 
     console.log('FFmpeg check skipped for now (assuming working based on logs)');
 } catch (error) {
     console.error('FFmpeg error:', error);
@@ -94,11 +92,10 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/passages', passageRoutes);
 app.use('/api/submissions', submissionRoutes);
 
+// ========== UPDATED TRANSCRIBE ROUTE ==========
 app.post('/api/transcribe', async (req, res) => {
     const { videoId } = req.body;
-    const audioFileName = `audio_${videoId}.mp3`;
-    const audioFilePath = path.join(__dirname, audioFileName);
-
+    let audioFilePath = path.join(__dirname, `audio_${videoId}.mp3`);    
     try {
         if (!videoId) {
             return res.status(400).json({ error: 'Video ID is required' });
@@ -106,186 +103,174 @@ app.post('/api/transcribe', async (req, res) => {
 
         console.log(`\n🎬 Downloading audio for video: ${videoId}...`);
 
-        // Delete existing file if present to prevent errors
+        // Delete existing file
         if (fs.existsSync(audioFilePath)) {
             try { fs.unlinkSync(audioFilePath); } catch (e) {}
         }
 
         let downloaded = false;
-        let ytdlErr = null;
 
-        // Try method 1: ytdl-core with headers
+        // Skip ytdl-core, go straight to yt-dlp
         try {
-            console.log('📥 Trying ytdl-core...');
+            console.log('📥 Using yt-dlp...');
             const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-            const info = await ytdl.getInfo(videoUrl, {
-                requestOptions: {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            const safeAudioPath = audioFilePath.replace(/\\/g, '/');
+
+            // 🔥 STRATEGY: Try multiple formats with different methods
+            const formats = [
+                '140',              // YouTube format ID for m4a (BEST for this video)
+                'bestaudio[ext=m4a]',
+                'bestaudio',
+                '251',              // webm audio
+                'worstaudio'        // fallback
+            ];
+
+            const ffmpegDir = path.join(__dirname, 'bin');
+            const safeFfmpegDir = ffmpegDir.replace(/\\/g, '/');
+
+const methods = [
+                {
+                    name: 'No Cookies (Simple)',
+                    // Thêm: --extract-audio --audio-format mp3 --ffmpeg-location ...
+                    cmd: (fmt) => `python -m yt_dlp -f "${fmt}" --extract-audio --audio-format mp3 --audio-quality 192K --ffmpeg-location "${safeFfmpegDir}" --no-warnings --no-check-certificate -o "${safeAudioPath}" "${videoUrl}"`
+                },
+                {
+                    name: 'Cookies.txt',
+                    cmd: (fmt) => {
+                        const cookiePath = path.join(__dirname, 'cookies.txt').replace(/\\/g, '/');
+                        return `python -m yt_dlp -f "${fmt}" --extract-audio --audio-format mp3 --audio-quality 192K --ffmpeg-location "${safeFfmpegDir}" --cookies "${cookiePath}" --no-warnings --no-check-certificate -o "${safeAudioPath}" "${videoUrl}"`;
+                    }
+                },
+                {
+                    name: 'Chrome Cookies',
+                    cmd: (fmt) => `python -m yt_dlp -f "${fmt}" --extract-audio --audio-format mp3 --audio-quality 192K --ffmpeg-location "${safeFfmpegDir}" --cookies-from-browser chrome --no-warnings --no-check-certificate -o "${safeAudioPath}" "${videoUrl}"`
+                }
+            ];
+
+            // Try each method with each format
+            for (const method of methods) {
+                if (downloaded) break;
+                
+                for (const format of formats) {
+                    try {
+                        console.log(`🚀 Trying: ${method.name} with format ${format}`);
+                        await execPromise(method.cmd(format), { timeout: 90000 });
+                        downloaded = true;
+                        console.log(`✅ Success: ${method.name} + format ${format}`);
+                        break;
+                    } catch (err) {
+                        const errMsg = err.message.split('\n')[0];
+                        console.warn(`⚠️ Failed: ${errMsg.substring(0, 80)}`);
                     }
                 }
-            });
-            const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
-            
-            console.log(`✅ Audio format selected: ${audioFormat.qualityLabel || 'audio only'}`);
-
-            // Stream audio to file
-            await new Promise((resolve, reject) => {
-                const audioStream = ytdl.downloadFromInfo(info, { 
-                    format: audioFormat,
-                    requestOptions: {
-                        headers: {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                        }
-                    }
-                });
-                const writeStream = fs.createWriteStream(audioFilePath);
-
-                audioStream.on('error', reject);
-                writeStream.on('error', reject);
-                writeStream.on('finish', resolve);
-
-                audioStream.pipe(writeStream);
-            });
-            
-            downloaded = true;
-            console.log('✅ Downloaded via ytdl-core');
-        } catch (err) {
-            console.warn('⚠️ ytdl-core failed:', err.message);
-            
-            // Try method 2: yt-dlp via Python module
-            try {
-                console.log('📥 Trying yt-dlp fallback...');
-                const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-                
-                // Use yt-dlp to download raw audio (WebM Opus format 251)
-                // AssemblyAI can handle WebM, so no ffmpeg conversion needed
-                const safeAudioPath = audioFilePath.replace(/\\/g, '/');
-
-                console.log('Running yt-dlp command...');
-                console.log('Output path:', safeAudioPath);
-
-                // yt-dlp with JavaScript runtime for YouTube challenge solving
-                const cmd = `python -m yt_dlp --js-runtimes node --remote-components ejs:github -f "bestaudio" --no-check-certificate -o "${safeAudioPath}" "${videoUrl}"`;
-                
-                await execPromise(cmd);
-                
-                downloaded = true;
-                console.log('✅ Downloaded via yt-dlp');
-            } catch (ytdlpErr) {
-                console.error(`⚠️ yt-dlp failed: ${ytdlpErr.message}`);
-                throw new Error(`Download failed. ytdl-core: ${err.message}. yt-dlp: ${ytdlpErr.message}`);
             }
-        }
 
-        // Verify file exists
-        if (!fs.existsSync(audioFilePath)) {
-            throw new Error('Audio file not found after download process finished.');
-        }
+            if (!downloaded) {
+                throw new Error('All download methods failed. Video may be restricted or unavailable.');
+            }
 
-        const fileSizeInMB = (fs.statSync(audioFilePath).size / (1024 * 1024)).toFixed(2);
-        console.log(`✅ Audio downloaded successfully: ${audioFilePath} (${fileSizeInMB} MB)`);
+            // Verify file
+            if (!fs.existsSync(audioFilePath)) {
+                throw new Error('File not created after download');
+            }
+
+            const stats = fs.statSync(audioFilePath);
+            const fileSizeInMB = (stats.size / 1024 / 1024).toFixed(2);
+            console.log(`📊 Downloaded: ${fileSizeInMB} MB`);
+            
+            if (stats.size < 10000) {
+                throw new Error('File too small (likely error page)');
+            }
+
+        } catch (err) {
+            console.error('❌ Download failed:', err.message);
+            throw new Error(`Cannot download video: ${err.message}`);
+        }
 
         // Upload to AssemblyAI
-        console.log('📤 Uploading audio to AssemblyAI...');
-        console.log('🔑 API Key:', process.env.ASSEMBLYAI_API_KEY ? `✅ SET (${process.env.ASSEMBLYAI_API_KEY.substring(0, 10)}...)` : '❌ MISSING');
+        console.log('📤 Uploading to AssemblyAI...');
         const formData = new FormData();
         formData.append('file', fs.createReadStream(audioFilePath));
 
-        const uploadResponse = await axios.post('https://api.assemblyai.com/v2/upload', formData, {
-            headers: {
-                authorization: process.env.ASSEMBLYAI_API_KEY,
-                ...formData.getHeaders(),
-            },
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity,
-        });
+        const uploadResponse = await axios.post(
+            'https://api.assemblyai.com/v2/upload', 
+            formData, 
+            {
+                headers: {
+                    authorization: process.env.ASSEMBLYAI_API_KEY,
+                    ...formData.getHeaders(),
+                },
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+            }
+        );
 
-        console.log('✅ File uploaded to AssemblyAI');
         const { upload_url } = uploadResponse.data;
+        console.log('✅ Uploaded to AssemblyAI');
 
         // Request transcription
-        console.log('⏳ Requesting transcription...');
         const transcriptResponse = await axios.post(
             'https://api.assemblyai.com/v2/transcript',
-            { 
-                audio_url: upload_url, 
-                language_code: 'en'
-            },
+            { audio_url: upload_url, language_code: 'en' },
             { headers: { authorization: process.env.ASSEMBLYAI_API_KEY } }
         );
 
         const transcriptId = transcriptResponse.data.id;
         console.log(`🆔 Transcript ID: ${transcriptId}`);
 
-        // Polling transcript
-        let transcriptCompleted = false;
+        // Poll for completion
         let transcriptData = null;
         let attempts = 0;
-        const maxAttempts = 120;
 
-        while (!transcriptCompleted && attempts < maxAttempts) {
+        while (attempts < 120) {
             const pollResponse = await axios.get(
                 `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
                 { headers: { authorization: process.env.ASSEMBLYAI_API_KEY } }
             );
 
-            const pollData = pollResponse.data;
-
-            if (pollData.status === 'completed') {
-                transcriptData = pollData;
-                transcriptCompleted = true;
+            if (pollResponse.data.status === 'completed') {
+                transcriptData = pollResponse.data;
                 console.log('✅ Transcription completed');
-            } else if (pollData.status === 'error') {
-                throw new Error(`Transcription failed: ${pollData.error}`);
+                break;
+            } else if (pollResponse.data.status === 'error') {
+                throw new Error(`Transcription error: ${pollResponse.data.error}`);
             }
 
-            if (!transcriptCompleted) {
-                process.stdout.write('.');
-                await new Promise((resolve) => setTimeout(resolve, 3000));
-                attempts++;
-            }
+            process.stdout.write('.');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            attempts++;
         }
 
-        if (!transcriptCompleted) {
-            throw new Error('Transcription timeout - exceeded maximum attempts');
+        if (!transcriptData) {
+            throw new Error('Transcription timeout');
         }
 
         // Cleanup
         try {
-            if (fs.existsSync(audioFilePath)) fs.unlinkSync(audioFilePath);
-            console.log('\n🗑️ Audio file deleted successfully');
-        } catch (err) {
-            console.error('Error deleting audio file:', err);
-        }
-
-        res.json({ transcript: transcriptData });
-    } catch (err) {
-        console.error('\n❌ Error in transcribe route:', err.message);
-        
-        // Log full error details
-        if (err.response) {
-            console.error('Status:', err.response.status);
-            console.error('Status Text:', err.response.statusText);
-            console.error('Response data:', JSON.stringify(err.response.data, null, 2));
-        } else if (err.request) {
-            console.error('No response from server:', err.request);
-        } else {
-            console.error('Error details:', err);
-        }
-        
-        // Cleanup in case of error
-        try {
             if (fs.existsSync(audioFilePath)) {
                 fs.unlinkSync(audioFilePath);
+                console.log('\n🗑️ Cleaned up audio file');
             }
-        } catch (cleanupErr) {}
+        } catch (e) {}
 
-        // Send detailed error to frontend
+        res.json({ transcript: transcriptData });
+
+    } catch (err) {
+        console.error('\n❌ Error:', err.message);
+        
+        // Cleanup
+        try {
+            if (fs.existsSync(audioFilePath)) fs.unlinkSync(audioFilePath);
+        } catch (e) {}
+
         res.status(500).json({ 
-            error: err.message || 'Failed to transcribe audio',
-            details: err.response?.data || null,
-            status: err.response?.status || null
+            error: err.message,
+            videoId,
+            suggestions: [
+                'Update yt-dlp: python -m pip install --upgrade yt-dlp',
+                'Check video is public and available',
+                'Try different video ID for testing'
+            ]
         });
     }
 });
